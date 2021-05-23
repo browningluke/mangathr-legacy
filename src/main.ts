@@ -1,7 +1,8 @@
 import { Plugins, PLUGINS } from "./plugins";
 import { Mongo } from "./databases/mongo";
 
-import { Command, handleDownloadDialog } from "./commands";
+import { Command, handleDownloadDialog, handleListDialog,
+	handleRegisterDialog } from "./commands";
 import { MangaPlugin } from "./types/plugin";
 
 const cliSelect = require('cli-select');
@@ -42,11 +43,20 @@ async function selectPlugin(): Promise<MangaPlugin> {
 */
 
 async function handleCommandSelection(command: Command, argPlugin?: MangaPlugin, query?: string) {
+	switch (command) {
+		case Command.List:
+			await handleListDialog(db);
+			return;
+	}
+
 	const plugin = argPlugin ?? await selectPlugin();
 
 	switch (command) {
 		case Command.Download:
 			await handleDownloadDialog(db, plugin, query);
+			break
+		case Command.Register:
+			await handleRegisterDialog(db,plugin, query);
 			break
 		default:
 			throw "Selected mode not in enum. (This should never happen)"
