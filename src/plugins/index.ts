@@ -3,12 +3,14 @@ import { Webtoons } from "./webtoons";
 import { CatManga } from "./catmanga";
 import { Cubari } from "./cubari";
 import { MangaSushi } from "./mangasushi";
+import { Mangakakalot } from "./mangakakalot";
 
 enum PLUGINS {
 	WEBTOONS = "Webtoons",
 	CATMANGA = "Catmanga",
 	CUBARI = "Cubari",
 	MANGASUSHI = "MangaSushi",
+	MANGAKAKALOT = "Mangakakalot"
 }
 
 class Plugins {
@@ -17,12 +19,14 @@ class Plugins {
 	static CATMANGA = new CatManga();
 	static CUBARI = new Cubari();
 	static MANGASUSHI = new MangaSushi();
+	static MANGAKAKALOT = new Mangakakalot();
 
 	static PLUGINS = {
 		"Webtoons": Plugins.WEBTOONS,
 		"Catmanga": Plugins.CATMANGA,
 		"Cubari": Plugins.CUBARI,
 		"MangaSushi": Plugins.MANGASUSHI,
+		"Mangakakalot": Plugins.MANGAKAKALOT
 	};
 	static PLUGIN_NAMES = Object.keys(Plugins.PLUGINS);
 
