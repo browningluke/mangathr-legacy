@@ -2,7 +2,7 @@ import { Plugins, PLUGINS } from "./plugins";
 import { Mongo } from "./databases/mongo";
 
 import { Command, handleDownloadDialog, handleListDialog,
-	handleRegisterDialog } from "./commands";
+	handleRegisterDialog, handleUpdateDialog } from "./commands";
 import { MangaPlugin } from "./types/plugin";
 
 const cliSelect = require('cli-select');
@@ -46,6 +46,9 @@ async function handleCommandSelection(command: Command, argPlugin?: MangaPlugin,
 	switch (command) {
 		case Command.List:
 			await handleListDialog(db);
+			return;
+		case Command.Update:
+			await handleUpdateDialog(db);
 			return;
 	}
 
