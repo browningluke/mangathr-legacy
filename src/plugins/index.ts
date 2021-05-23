@@ -1,16 +1,19 @@
 import { MangaPlugin, Chapter, Reader, Manga } from "../types/plugin";
 import { Webtoons } from "./webtoons";
+import { CatManga } from "./catmanga";
 
 enum PLUGINS {
 	WEBTOONS = "Webtoons",
+	CATMANGA = "Catmanga",
 }
 
 class Plugins {
 
 	static WEBTOONS = new Webtoons();
-
+	static CATMANGA = new CatManga();
 	static PLUGINS = {
 		"Webtoons": Plugins.WEBTOONS,
+		"Catmanga": Plugins.CATMANGA,
 	};
 	static PLUGIN_NAMES = Object.keys(Plugins.PLUGINS);
 
