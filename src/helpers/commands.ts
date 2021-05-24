@@ -26,9 +26,9 @@ async function download(chapter: Chapter, mangaTitle: string, plugin: MangaPlugi
     await downloadChapter(reader, mangaTitle, Plugins.getRefererUrl(plugin), quiet);
 }
 
-async function printTableAndMessage(chapters: Chapter[], mangaTitle: string) {
+async function printTableAndMessage(chapters: Chapter[], mangaTitle: string, numManga: number) {
     let table = await generateTable(chapters, mangaTitle);
-    console.log(`${table.toString()}\nTitle: ${mangaTitle}\nNumber of chapters: ${mangaTitle}`);
+    console.log(`${table.toString()}\nTitle: ${mangaTitle}\nNumber of chapters: ${numManga}`);
 }
 
 export { searchQuery, printTableAndMessage, download };

@@ -199,7 +199,7 @@ class Download {
     }
 
     async startDownloadDialog() {
-        await printTableAndMessage(this.chapters, this.manga.title);
+        await printTableAndMessage(this.chapters, this.manga.title, this.manga.chapters.length);
         let selectedSubMode = await Download.selectSubMode();
 
         if (selectedSubMode == SubMode.Edit) {

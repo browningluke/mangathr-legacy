@@ -24,7 +24,7 @@ async function handleRegisterDialog(db: Database, plugin: MangaPlugin, query?: s
 	let mangaUnion = await searchQuery(plugin, true, query);
 	let manga = mangaUnion as RSSManga;
 
-	await printTableAndMessage(manga.chapters, manga.title);
+	await printTableAndMessage(manga.chapters, manga.title, manga.chapters.length);
 	console.log((manga as RSSManga).id);
 
 	if (await getUserConfirmation(`Are you sure you want to register this manga? (y/n): `) == "n") {
