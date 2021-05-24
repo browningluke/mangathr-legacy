@@ -84,7 +84,7 @@ async function downloadChapter(reader: Reader, mangaTitle: string, refererUrl?: 
 
 	await getData(reader.urls, delayTime);
 
-	if (reader.num) {
+	if (reader.num != null) {
 		let xmlString = generateXMLString(reader.num, reader.chapterTitle);
 		archive.append(Buffer.from(xmlString), { name: "ComicInfo.xml" });
 		if (!silent) console.log("Added ComicInfo!");
