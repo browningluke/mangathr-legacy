@@ -4,6 +4,7 @@ import { Mongo } from "./databases/mongo";
 import { Command, handleDownloadDialog, handleListDialog,
 	handleRegisterDialog, handleUpdateDialog } from "./commands";
 import { MangaPlugin } from "./types/plugin";
+import { getUserSelection } from "./helpers/cli";
 
 const { ArgumentParser } = require('argparse');
 
@@ -18,13 +19,12 @@ const db = new Mongo();
 */
 
 async function selectCommand(): Promise<Command> {
-	const selectedModeResp = await cliSelect({values: Object.values(Command)});
-	return selectedModeResp.value;
+	return getUserSelection(Object.values(Command));
 }
 
 async function selectPlugin(): Promise<MangaPlugin> {
-	let selectedPluginResp = await cliSelect({values: Plugins.PLUGIN_NAMES});
-	let selectedPlugin: PLUGINS = selectedPluginResp.value;
+	let selectedPluginResp = await getUserSelection(Plugins.PLUGIN_NAMES);
+	let selectedPlugin: PLUGINS = (<any>PLUGINS) [selectedPluginResp];
 
 	let plugin: MangaPlugin;
 	try {

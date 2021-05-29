@@ -1,10 +1,8 @@
-import { getNumber, getUserConfirmation, readLineAsync} from "../helpers/cli";
+import {getNumber, getUserConfirmation, getUserSelection, readLineAsync} from "../helpers/cli";
 import { download, printTableAndMessage, searchQuery } from "../helpers/commands";
 import { MangaPlugin, Chapter, Manga } from "../types/plugin";
 import { Database } from "../types/database";
 import { delay } from "../helpers/async";
-
-const cliSelect = require('cli-select');
 
 enum SubMode {
     DownloadSingle = "Download Single",
@@ -58,13 +56,11 @@ class Download {
     */
 
     private static async selectSubMode() {
-        const selectedSubModeResp = await cliSelect({values: Object.values(SubMode)});
-        return selectedSubModeResp.value;
+        return getUserSelection(Object.values(SubMode));
     }
 
     private static async selectEditSubMode() {
-        const selectedSubModeResp = await cliSelect({values: Object.values(EditSubMode)});
-        return selectedSubModeResp.value;
+        return getUserSelection(Object.values(EditSubMode));
     }
 
     // Download
@@ -147,7 +143,7 @@ class Download {
 
     private async editMangaTitle() {
         process.stdout.write("Enter a new title: ");
-        this.manga.title = await readLineAsync();;
+        this.manga.title = await readLineAsync();
     }
 
     private async editChapterTitle() {
