@@ -46,7 +46,7 @@ async function getNumber(promptString: string, optChecks?: (num: number) => bool
         let numberString = await readLineAsync();
 
         if (isNumber(numberString) &&
-        optChecks ? optChecks(parseFloat(numberString)) : true) {
+        (optChecks ? optChecks(parseFloat(numberString)) : true)) {
             return parseFloat(numberString);
         }
 
