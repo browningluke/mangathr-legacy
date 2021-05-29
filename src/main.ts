@@ -5,7 +5,6 @@ import { Command, handleDownloadDialog, handleListDialog,
 	handleRegisterDialog, handleUpdateDialog } from "./commands";
 import { MangaPlugin } from "./types/plugin";
 
-const cliSelect = require('cli-select');
 const { ArgumentParser } = require('argparse');
 
 const parser = new ArgumentParser({
@@ -131,5 +130,13 @@ function main() {
 	const { mode, plugin, query } = handleArgs();
 	run(mode, plugin, query).then();
 }
+
+export const shutdown = () => {
+	console.log("\nStopping...");
+
+	db.close().then().finally(() => process.exit());
+}
+
+process.on('SIGINT', shutdown);
 
 main();
