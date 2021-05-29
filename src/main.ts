@@ -23,12 +23,11 @@ async function selectCommand(): Promise<Command> {
 }
 
 async function selectPlugin(): Promise<MangaPlugin> {
-	let selectedPluginResp = await getUserSelection(Plugins.PLUGIN_NAMES);
-	let selectedPlugin: PLUGINS = (<any>PLUGINS) [selectedPluginResp];
+	let selectedPluginResp = await getUserSelection(Object.values(PLUGINS));
 
 	let plugin: MangaPlugin;
 	try {
-		plugin = Plugins.PLUGINS[selectedPlugin];
+		plugin = Plugins.PLUGINS[selectedPluginResp];
 	} catch (error) {
 		console.error("Could not find plugin!");
 		throw error;
