@@ -18,15 +18,25 @@ class Webtoons implements MangaPlugin {
 	
 	async _getMangaPage(query: string): Promise<{ body: string, urlLocation: string }> {
 		const searchURL = `${SEARCH_URL}${encodeURI(query)}${SEARCH_PARAMS}`;
-		const searchResp = await Scraper.get(searchURL);
 
-		let mangaID: string;
+		let searchJson: any;
 		try {
-			let searchJson = JSON.parse(searchResp.body);
-			mangaID = searchJson['items'][0][0][3];
+			const searchResp = await Scraper.get(searchURL);
+			searchJson = JSON.parse(searchResp.body);
 		} catch (error) {
 			throw "Failed to get chapter with that title.";
 		}
+
+		if (searchJson["items"].length == 0) throw "Could not find a webtoon with that title.";
+
+		let mangaID = '';
+		for (const element of searchJson['items'][0]) {
+			if (element[1][0] == "TITLE") {
+				mangaID = element[3][0];
+			}
+		}
+
+		if (!mangaID) throw "Could not find a webtoon with that title.";
 
 		const resp = await Scraper.get(this.BASE_URL + LIST_ENDPOINT + mangaID, {
 			redirect: "manual"
