@@ -27,9 +27,8 @@ class Cubari implements MangaPlugin {
 			let mangaSlug = cubariURLMatch![2];
 			mangaURL = API_URL + cubariType + "/series/" + mangaSlug + "/";
 		} else {
-			let cubariTypeMatch = /\/api\/(.+?)\//.exec(query)!;
-			cubariType = cubariTypeMatch[1];
-			mangaURL = query;
+			cubariType = 'gist';
+			mangaURL = `${API_URL}gist/series/${query}/`;
 		}
 
 
@@ -115,11 +114,15 @@ class Cubari implements MangaPlugin {
 
 		let { chapters, mangaTitle } = await this._getChapters(manga, cubariType, mangaURL);
 
+		let idMatch = /\/series\/(.*)\//.exec(mangaURL);
+		if (!idMatch) throw "Failed to get manga ID";
+		let id = idMatch[1];
+
 		return {
 			title: mangaTitle,
 			chapters: chapters.reverse(),
 			rss: false,
-			id: mangaURL
+			id: id
 		}
 	}
 
