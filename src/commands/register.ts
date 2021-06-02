@@ -21,7 +21,15 @@ async function addToDatabase(db: Database, mangaUpdate: MangaUpdate) {
 }
 
 async function handleRegisterDialog(db: Database, plugin: MangaPlugin, query?: string) {
-	let mangaUnion = await searchQuery(plugin, true, query);
+
+	let mangaUnion;
+	try {
+		mangaUnion = await searchQuery(plugin, true, query);
+	} catch (e) {
+		console.log(e.message);
+		return;
+	}
+
 	let manga = mangaUnion as RSSManga;
 
 	await printTableAndMessage(manga.chapters, manga.title, manga.chapters.length);

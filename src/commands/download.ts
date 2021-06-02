@@ -208,9 +208,15 @@ class Download {
 }
 
 async function handleDownloadDialog(db: Database, plugin: MangaPlugin, query?: string) {
-    const manga = await searchQuery(plugin, false, query);
-    const download = new Download(manga, manga.chapters, plugin);
+    let manga: Manga;
+    try {
+        manga = await searchQuery(plugin, false, query);
+    } catch (e) {
+        console.log(e.message);
+        return;
+    }
 
+    const download = new Download(manga, manga.chapters, plugin);
     await download.startDownloadDialog();
 }
 

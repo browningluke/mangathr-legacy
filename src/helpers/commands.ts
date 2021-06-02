@@ -1,7 +1,6 @@
 import { Plugins } from "../plugins";
 import { generateTable, readLineAsync } from "./cli";
-import { Chapter } from "../types/plugin";
-import { MangaPlugin } from "../types/plugin";
+import { Chapter, MangaPlugin } from "../types/plugin";
 import { downloadChapter } from "../downloader";
 
 async function searchQuery(plugin: MangaPlugin, register: boolean, argQuery?: string) {
@@ -9,14 +8,7 @@ async function searchQuery(plugin: MangaPlugin, register: boolean, argQuery?: st
     let query = argQuery ?? await readLineAsync();
     console.log("Query " + query);
 
-    try {
-        var manga = register ? await Plugins.getUpdateUrl(query, plugin) : await Plugins.getManga(query, plugin)!;
-    } catch (error) {
-        console.error(error);
-        throw error;
-    }
-
-    return manga;
+    return register ? await Plugins.getUpdateUrl(query, plugin) : await Plugins.getManga(query, plugin)!;
 }
 
 async function download(chapter: Chapter, mangaTitle: string, plugin: MangaPlugin, quiet?: boolean) {
