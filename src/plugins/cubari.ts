@@ -110,6 +110,9 @@ class Cubari implements MangaPlugin {
 
 	async getUpdateUrl(query: string): Promise<RSSManga> {
 		let { manga, cubariType, mangaURL } = await this._getMangaResp(query);
+
+		if (cubariType == 'imgur') throw new Error("Registering not supported for Imgur chapters.");
+
 		let { chapters, mangaTitle } = await this._getChapters(manga, cubariType, mangaURL);
 
 		return {
