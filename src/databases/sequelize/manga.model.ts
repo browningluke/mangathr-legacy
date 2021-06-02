@@ -23,3 +23,33 @@ export class MangaSchema extends Model<MangaAttributes, MangaCreationAttributes>
     public readonly createdAt!: Date;
     public readonly updatedAt!: Date;
 }
+
+export const defineManga = (sequelize: Sequelize) => {
+    MangaSchema.init({
+        _id: {
+            type: DataTypes.INTEGER,
+            autoIncrement: true,
+            primaryKey: true
+        },
+        plugin: {
+            type: DataTypes.STRING,
+            allowNull: false
+        },
+        title: {
+            type: DataTypes.STRING,
+            allowNull: false
+        },
+        id: {
+            type: DataTypes.STRING,
+            allowNull: false
+        },
+        chapters: {
+            type: DataTypes.JSON,
+            allowNull: false
+        }
+
+    }, {
+        sequelize,
+        tableName: "manga"
+    });
+}
