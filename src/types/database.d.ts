@@ -3,6 +3,7 @@ import { PLUGINS } from "../plugins";
 export interface Database {
     setup(): Promise<void>;
     close(): Promise<void>;
+    findAll();
     registerManga(manga: MangaUpdate): Promise<void>;
     forEach(func: (manga: MangaUpdate) => Promise<MangaUpdate>, sleep?: number): Promise<void>;
 }
