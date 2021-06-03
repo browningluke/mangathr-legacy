@@ -26,9 +26,7 @@ async function downloadChapter(reader: Reader, mangaTitle: string, refererUrl?: 
 								silent = false, delayTime = 100): Promise<void> {
 	const { filepath, dirname } = generatePath(reader, mangaTitle);
 
-	fs.mkdir(dirname, { recursive: true }, (err: any) => {
-		if (err) throw err;
-	})
+	await fs.promises.mkdir(dirname, { recursive: true });
 
 	if (fs.existsSync(filepath)) {
 		if (!silent) console.log(`Skipping ${reader.chapterTitle}, already downloaded.`);
