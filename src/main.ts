@@ -6,7 +6,7 @@ import { Command, handleDownloadDialog, handleListDialog,
 import { MangaPlugin } from "./types/plugin";
 import { getUserSelection } from "./helpers/cli";
 
-const { ArgumentParser } = require('argparse');
+import { ArgumentParser } from 'argparse';
 
 const parser = new ArgumentParser({
 	description: 'Manga Downloader'

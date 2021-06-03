@@ -2,9 +2,9 @@ import { Image, Reader } from "./types/plugin";
 import { retryFetch } from "./helpers/retry-fetch";
 import { delay } from "./helpers/async";
 
-const archiver = require('archiver');
-const fs = require('fs');
-const ProgressBar = require('progress');
+import archiver from 'archiver';
+import fs from 'fs';
+import ProgressBar from 'progress';
 
 function generatePath(reader: Reader, mangaTitle: string): { filepath: string, dirname: string } {
 	const title = (reader.num ? `${reader.num!} - ` : "") + `${reader.chapterTitle}`;

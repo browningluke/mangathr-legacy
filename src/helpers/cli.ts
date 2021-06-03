@@ -2,9 +2,9 @@ import { Chapter } from "../types/plugin";
 import { isDownloaded } from "../downloader";
 import { shutdown } from "../main";
 
-const readline = require('readline');
-const Table = require('cli-table');
-const cliSelect = require('cli-select');
+import readline from 'readline';
+import Table from 'cli-table';
+import cliSelect from 'cli-select';
 
 const readLineAsync = (): Promise<string> => {
     const rl = readline.createInterface({
@@ -22,15 +22,14 @@ const readLineAsync = (): Promise<string> => {
 
 const getUserSelection = async <O> (values: O[]): Promise<O> => {
 
-    let selection;
     try {
-        selection = await cliSelect({ values: values });
+        var selection = await cliSelect({ values: values });
     } catch (e) {
         // By definition, this is only thrown when the user sends 'SIGINT'.
         shutdown();
     }
 
-    return selection.value;
+    return selection!.value;
 };
 
 const getUserConfirmation = async (promptString: string): Promise<String> => {

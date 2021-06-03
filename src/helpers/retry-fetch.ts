@@ -1,9 +1,11 @@
 import { Response } from "node-fetch"
 import { delay } from "./async";
 
-const fetch = require('node-fetch')
+import fetch from 'node-fetch';
 
-export const retryFetch = (url: string, fetchOptions = {}, retries = 3, retryDelay = 1000, timeout?: number): Promise<Response> => {
+export const retryFetch = (url: string, fetchOptions = {},
+                           retries = 3, retryDelay = 1000,
+                           timeout?: number): Promise<Response> => {
     return new Promise((resolve, reject) => {
 
         // check for timeout

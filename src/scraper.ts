@@ -1,7 +1,5 @@
-import { Response } from "node-fetch";
-
-const fetch = require('node-fetch');
-const $:cheerio.CheerioAPI = require('cheerio');
+import fetch, { Response } from "node-fetch";
+import $ from 'cheerio';
 
 interface GetObject {
 	body: string,
