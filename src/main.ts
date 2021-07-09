@@ -1,5 +1,5 @@
 import { Plugins, PLUGINS } from "./plugins";
-import { Mongo } from "./databases/mongo";
+import { SQLite } from "./databases/sqlite";
 
 import { Command, handleDownloadDialog, handleListDialog,
 	handleRegisterDialog, handleUpdateDialog } from "./commands";
@@ -12,7 +12,7 @@ const parser = new ArgumentParser({
 	description: 'Manga Downloader'
 });
 
-const db = new Mongo();
+const db = new SQLite();
 
 /*
 	Selections
