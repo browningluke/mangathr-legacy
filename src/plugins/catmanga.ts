@@ -31,18 +31,46 @@ class CatManga implements MangaPlugin {
 
 	BASE_URL = "https://catmanga.org/";
 	NAME = PLUGINS.CATMANGA;
+	buildId: string | undefined;
 
-	async _getApiManga(query: string, seriesId?: string): Promise<APIManga> {
+	private async setBuildIdFromIndex() {
 		const resp = await Scraper.get(this.BASE_URL);
 		const indexHTML = resp.body;
 
 		if (!indexHTML) {
-			throw "Failed to get index.html";
+			throw Error("Failed to get index.html");
 		}
 
 		const APINode: any = Scraper.css(indexHTML, "script#__NEXT_DATA__");
 		const indexJSONString = JSON.parse(APINode[0].children[0].data);
-		const allSeries: APIManga[] = indexJSONString['props']['pageProps']['series'];
+
+		this.buildId = indexJSONString['buildId'];
+	}
+
+	private async getBuildIdFromChapter(mangaID: string, chapterNum: number) {
+		const chapterHTML = (await Scraper.get(`${this.BASE_URL}series/${mangaID}/${chapterNum}`)).body;
+
+		if (!chapterHTML) throw Error("Could not get chapter HTML.");
+
+		const APINode: any = Scraper.css(chapterHTML, "script#__NEXT_DATA__");
+		const indexJSONString = JSON.parse(APINode[0].children[0].data);
+		return indexJSONString['buildId'];
+	}
+
+	private async _getApiManga(query: string, seriesId?: string): Promise<APIManga> {
+
+		if (!this.buildId) await this.setBuildIdFromIndex();
+
+		const indexJSONString = (await Scraper.get(`${this.BASE_URL}_next/data/${this.buildId}/index.json`)).body;
+
+		let indexJSON;
+		try {
+			indexJSON = JSON.parse(indexJSONString);
+		} catch (e) {
+			throw Error("Failed to get index information.");
+		}
+
+		const allSeries: APIManga[] = indexJSON['pageProps']['series'];
 
 		const findManga = (): APIManga | undefined => {
 			for (const element of allSeries) {
@@ -63,7 +91,7 @@ class CatManga implements MangaPlugin {
 		return findManga()!;
 	}
 
-	_getChapters(manga: APIManga): Chapter[] {
+	private _getChapters(manga: APIManga): Chapter[] {
 		let chapters: Chapter[] = [];
 		manga["chapters"].forEach((chapter: APIChapters) => {
 			let seriesID = manga["series_id"]
@@ -105,23 +133,36 @@ class CatManga implements MangaPlugin {
 	}
 
 	async selectChapter(chapter: Chapter): Promise<Reader> {
+
+		const getMangaJSON = async (buildId: string) => {
+			const mangaURL = `${this.BASE_URL}_next/data/${buildId}/series/${mangaID}/${chapterNum}.json`;
+			const mangaJsonString = (await Scraper.get(mangaURL)).body;
+
+			let mangaJSON;
+			try {
+				mangaJSON = JSON.parse(mangaJsonString);
+			} catch (e) {
+				throw Error("Failed to parse manga JSON.");
+			}
+
+			if (mangaJSON && Object.keys(mangaJSON).length == 0 && mangaJSON.constructor == Object)
+				throw Error("Failed to load chapter.");
+
+			return mangaJSON;
+		}
+
 		const mangaID = chapter.id!;
 		const chapterNum = chapter.num;
 
-		const chapterHTML = (await Scraper.get(`${this.BASE_URL}series/${mangaID}/${chapterNum}`)).body;
+		if (!this.buildId) await this.setBuildIdFromIndex();
 
-		if (!chapterHTML) throw "Could not get chapter HTML.";
-
-		const APINode: any = Scraper.css(chapterHTML, "script#__NEXT_DATA__");
-		const indexJSONString = JSON.parse(APINode[0].children[0].data);
-		const buildId = indexJSONString['buildId'];
-
-		const mangaURL = `${this.BASE_URL}_next/data/${buildId}/series/${mangaID}/${chapterNum}.json`;
-		const mangaJsonString = (await Scraper.get(mangaURL)).body;
-
-		if (!mangaJsonString) throw "Failed to load chapter.";
-
-		const mangaJSON = JSON.parse(mangaJsonString);
+		let mangaJSON;
+		try {
+			mangaJSON = await getMangaJSON(this.buildId!);
+		} catch (e) {
+			let buildId = await this.getBuildIdFromChapter(mangaID, chapterNum);
+			mangaJSON = await getMangaJSON(buildId);
+		}
 
 		const imgList = mangaJSON["pageProps"]["pages"];
 
