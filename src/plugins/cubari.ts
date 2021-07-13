@@ -7,6 +7,7 @@ const API_URL = "https://cubari.moe/read/api/"
 
 enum CubariType {
 	IMGUR = "imgur",
+	MANGADEX = "mangadex",
 	GIST = "gist"
 }
 
@@ -23,11 +24,17 @@ class Cubari implements MangaPlugin {
 
 		if (!api) {
 			let cubariURLMatch = /\/read\/(\w+)\/(.+?)\//.exec(query);
+			let mangadexURLMatch = /mangadex\.org\/title\/(.+)/.exec(query);
+
 			let mangaSlug: string;
 			if (cubariURLMatch) {
 				let rawCubariType = cubariURLMatch![1]; // "imgur" or "gist"
 				cubariType = rawCubariType as CubariType;
 				mangaSlug = cubariURLMatch![2];
+
+			} else if (mangadexURLMatch) {
+				cubariType = CubariType.MANGADEX;
+				mangaSlug = mangadexURLMatch![1];
 
 			} else {
 				throw new Error("Invalid Cubari URL.");
@@ -63,7 +70,7 @@ class Cubari implements MangaPlugin {
 
 		let chapters: Chapter[] = [];
 
-		if (cubariType == CubariType.GIST) {
+		if (cubariType == CubariType.GIST || cubariType == CubariType.MANGADEX) {
 			let chapterIndexAsArray = Object.keys(manga["chapters"]); // Since manga.chapters is an obj.
 			chapterIndexAsArray.forEach((index) => {
 				const chapter = manga["chapters"][index];
@@ -166,7 +173,7 @@ class Cubari implements MangaPlugin {
 		let imgURLs: Image[] = [];
 		const digits = Math.floor(Math.log10(pages.length)) + 1;
 		pages.forEach((element: any, i: number) => {
-			const url = element["src"];
+			const url = cubariType == CubariType.MANGADEX ? element : element["src"];
 			let extensionMatch = /\.(\w{3})($|\?\w+)/.exec(url);
 			if (!extensionMatch) throw "no extension";
 	
