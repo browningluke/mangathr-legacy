@@ -125,7 +125,7 @@ class Cubari implements MangaPlugin {
 
 		let idMatch = /\/series\/(.*)\//.exec(mangaURL);
 		if (!idMatch) throw "Failed to get manga ID";
-		let id = idMatch[1];
+		let id = `${cubariType}~${idMatch[1]}`;
 
 		return {
 			title: mangaTitle,
@@ -146,7 +146,12 @@ class Cubari implements MangaPlugin {
 	}
 
 	async getChaptersById(id: string): Promise<Chapter[]> {
-		return (await this.getManga(id, true)).chapters;
+		let x = /(.*)~(.*)/.exec(id);
+		let rawCubariType = x![1];
+		let mangaId = x![2];
+		let cubariType: CubariType = rawCubariType as CubariType;
+
+		return (await this.getManga(mangaId, true, cubariType)).chapters;
 	}
 
 	async selectChapter(chapter: Chapter): Promise<Reader> {
