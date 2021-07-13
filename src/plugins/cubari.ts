@@ -76,7 +76,13 @@ class Cubari implements MangaPlugin {
 
 				let titleRaw = chapter["title"];
 				let title = titleRaw;
-				if (!titleRaw.toLowerCase().includes("chapter") || !titleRaw.toLowerCase().includes("ch")) {
+
+				// Check for empty or null titles
+				if (titleRaw == null || titleRaw == "") {
+					title = `Chapter ${number}`
+				} else if (!titleRaw.toLowerCase().includes("chapter") ||
+					!titleRaw.toLowerCase().includes("ch")) {
+
 					title = `Chapter ${number} - ${titleRaw}`;
 				}
 
