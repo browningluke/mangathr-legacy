@@ -5,35 +5,38 @@ import { pad } from "../helpers/plugins";
 
 const API_URL = "https://cubari.moe/read/api/"
 
+enum CubariType {
+	IMGUR = "imgur",
+	GIST = "gist"
+}
+
 class Cubari implements MangaPlugin {
 	
 	BASE_URL = "https://cubari.moe";
 	NAME = PLUGINS.CUBARI;
 
-	async _getMangaResp(query: string, api = false):
-		Promise<{ manga: any, cubariType: string, mangaURL: string }> {
+	async _getMangaResp(query: string, api = false, apiType?: CubariType):
+		Promise<{ manga: any, cubariType: CubariType, mangaURL: string }> {
 
-		let cubariType;
+		let cubariType: CubariType;
 		let mangaURL;
 
 		if (!api) {
 			let cubariURLMatch = /\/read\/(\w+)\/(.+?)\//.exec(query);
+			let mangaSlug: string;
+			if (cubariURLMatch) {
+				let rawCubariType = cubariURLMatch![1]; // "imgur" or "gist"
+				cubariType = rawCubariType as CubariType;
+				mangaSlug = cubariURLMatch![2];
 
-			if (!cubariURLMatch) {
+			} else {
 				throw new Error("Invalid Cubari URL.");
 			}
 
-			cubariType = cubariURLMatch![1]; // "imgur" or "gist"
-			let mangaSlug = cubariURLMatch![2];
 			mangaURL = API_URL + cubariType + "/series/" + mangaSlug + "/";
 		} else {
-			cubariType = 'gist';
-			mangaURL = `${API_URL}gist/series/${query}/`;
-		}
-
-
-		if (cubariType != "gist" && cubariType != "imgur") {
-			throw new Error("Invalid Cubari URL.");
+			cubariType = apiType!;
+			mangaURL = `${API_URL}${apiType}/series/${query}/`;
 		}
 
 		let mangaJSONString = (await Scraper.get(mangaURL)).body;
@@ -51,7 +54,7 @@ class Cubari implements MangaPlugin {
 		return { manga, cubariType, mangaURL };
 	}
 
-	_getChapters(manga: any, cubariType: string, mangaURL: string) {
+	_getChapters(manga: any, cubariType: CubariType, mangaURL: string) {
 		let mangaTitle = manga["title"];
 
 		if (!mangaTitle) {
@@ -60,7 +63,7 @@ class Cubari implements MangaPlugin {
 
 		let chapters: Chapter[] = [];
 
-		if (cubariType == "gist") {
+		if (cubariType == CubariType.GIST) {
 			let chapterIndexAsArray = Object.keys(manga["chapters"]); // Since manga.chapters is an obj.
 			chapterIndexAsArray.forEach((index) => {
 				const chapter = manga["chapters"][index];
@@ -81,7 +84,7 @@ class Cubari implements MangaPlugin {
 					title: title,
 					url: `${this.BASE_URL}${proxyURL}`,
 					num: number,
-					id: "gist"
+					id: cubariType
 				});
 			});
 		} else {
@@ -97,7 +100,7 @@ class Cubari implements MangaPlugin {
 				title: chapterTitle,
 				url: mangaURL,
 				num: chapterNum,
-				id: "imgur"
+				id: CubariType.IMGUR
 			});
 		}
 
@@ -110,7 +113,7 @@ class Cubari implements MangaPlugin {
 	async getUpdateUrl(query: string): Promise<RSSManga> {
 		let { manga, cubariType, mangaURL } = await this._getMangaResp(query);
 
-		if (cubariType == 'imgur') throw new Error("Registering not supported for Imgur chapters.");
+		if (cubariType == CubariType.IMGUR) throw new Error("Registering not supported for Imgur chapters.");
 
 		let { chapters, mangaTitle } = await this._getChapters(manga, cubariType, mangaURL);
 
@@ -126,8 +129,8 @@ class Cubari implements MangaPlugin {
 		}
 	}
 
-	async getManga(query: string, api?: boolean): Promise<Manga> {
-		let { manga, cubariType, mangaURL } = await this._getMangaResp(query, api);
+	async getManga(query: string, api?: boolean, apiType?: CubariType): Promise<Manga> {
+		let { manga, cubariType, mangaURL } = await this._getMangaResp(query, api, apiType);
 		let { chapters, mangaTitle } = await this._getChapters(manga, cubariType, mangaURL);
 
 		return {
@@ -142,11 +145,12 @@ class Cubari implements MangaPlugin {
 
 	async selectChapter(chapter: Chapter): Promise<Reader> {
 		const resp = await Scraper.get(chapter.url!);
-		const cubariType = chapter.id!;
+		const rawCubariType = chapter.id!;
+		const cubariType = rawCubariType as CubariType;
 
 		const body = JSON.parse(resp.body);
 
-		const pages = cubariType == "imgur" ? body.chapters[1].groups[1] : body;
+		const pages = cubariType == CubariType.IMGUR ? body.chapters[1].groups[1] : body;
 
 		let imgURLs: Image[] = [];
 		const digits = Math.floor(Math.log10(pages.length)) + 1;
