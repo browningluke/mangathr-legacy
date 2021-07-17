@@ -46,7 +46,9 @@ class Cubari implements MangaPlugin {
 			mangaURL = `${API_URL}${apiType}/series/${query}/`;
 		}
 
-		let mangaJSONString = (await Scraper.get(mangaURL)).body;
+		let mangaJSONResp = await Scraper.get(mangaURL);
+		if (mangaJSONResp.status_code != 200) throw Error("Failed to get manga information.");
+		let mangaJSONString = mangaJSONResp.body;
 
 		if (!mangaJSONString) {
 			throw new Error("Failed to get JSON data.");
