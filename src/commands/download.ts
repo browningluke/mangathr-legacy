@@ -15,7 +15,8 @@ enum EditSubMode {
     BulkRenameRegex = "Rename All Chapters (regex)",
     RenameMangaTitle = "Edit title of manga",
     RenameChapterTitle = "Edit title of specific chapter",
-    ChangeNumber = "Edit number of specific chapter"
+    ChangeNumber = "Edit number of specific chapter",
+    Back = "Back"
 }
 
 class Download {
@@ -189,6 +190,8 @@ class Download {
                 break;
             case EditSubMode.ChangeNumber:
                 await this.editChapterNumber();
+                break;
+            case EditSubMode.Back:
                 break;
         }
         await this.startDownloadDialog();
