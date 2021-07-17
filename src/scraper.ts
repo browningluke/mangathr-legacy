@@ -9,8 +9,19 @@ interface GetObject {
 
 class Scraper {
 
-	static async get(url: string, params?: any): Promise<GetObject> {
-		const res: Response = await fetch(url, params);
+	static async get(urlString: string, params?: any, escape = true): Promise<GetObject> {
+		let urlParams: URLSearchParams | string = "?";
+
+		if (escape) {
+			urlParams = new URLSearchParams(params);
+		} else if (params) {
+			for (const [key, value] of Object.entries(params)) {
+				const knownVal = value as string | number | boolean;
+				urlParams += `${key}=${value}&`
+			}
+		}
+
+		const res: Response = await fetch(urlString + urlParams);
 		const data = await res.text();
 
 		return {
@@ -20,7 +31,7 @@ class Scraper {
 		};
 	}
 
-	static async post(url: string, body?: any, params?: any): Promise<GetObject> {
+	static async post(url: string, body?: any, options?: any): Promise<GetObject> {
 		const searchParams = new URLSearchParams();
 
 		for (const [key, value] of Object.entries(body)) {
@@ -28,7 +39,7 @@ class Scraper {
 			searchParams.append(key, knownVal.toString());
 		}
 
-		const res: Response = await fetch(url, params ?? {
+		const res: Response = await fetch(url, options ?? {
 			method: "POST",
 			body: searchParams
 		});
