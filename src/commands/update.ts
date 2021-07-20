@@ -17,7 +17,7 @@ function findNewChapters(availableChapters: Chapter[],
 }
 
 const checkForNewChapters = async (manga: MangaUpdate) => {
-    console.log(`--- Checking manga: ${manga.title} ---`);
+    console.log(`--- Checking manga: ${manga.title} [with ${manga.plugin}] ---`);
 
     const plugin = Plugins.PLUGINS[manga.plugin];
 
