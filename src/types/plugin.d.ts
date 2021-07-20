@@ -25,6 +25,8 @@ export interface Chapter {
     url?: string;
     title: string;
     num: number;
+    opt?: any; // Stores any misc info, preventing
+               // the need to make duplicate HTTP requests.
 }
 
 export interface Image {
