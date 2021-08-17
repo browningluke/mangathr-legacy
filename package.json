@@ -1,7 +1,7 @@
 {
-  "name": "manga-downloader",
+  "name": "Mangathr",
   "version": "0.0.9",
-  "description": "",
+  "description": "A terminal client for downloading manga, with support for sites like MangaDex, Cubari and more.",
   "main": "dist/main.js",
   "scripts": {
     "build": "tsc",
