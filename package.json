@@ -2,12 +2,15 @@
   "name": "Mangathr",
   "version": "0.0.9",
   "description": "A terminal client for downloading manga, with support for sites like MangaDex, Cubari and more.",
-  "main": "dist/main.js",
+  "main": "bin/mangathr.js",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/main.js",
+    "start": "node bin/mangathr.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "watch": "tsc --watch --project './tsconfig.json'"
+  },
+  "bin": {
+    "mangathr": "bin/mangathr.js"
   },
   "author": "Luke Browning - lrbrowning6@gmail.com",
   "license": "ISC",

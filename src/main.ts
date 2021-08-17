@@ -125,7 +125,7 @@ function handleArgs():
 	return { mode: mode, plugin: plugin, query: query };
 }
 
-function main() {
+export function main() {
 	const { mode, plugin, query } = handleArgs();
 	run(mode, plugin, query).then();
 }
@@ -137,5 +137,3 @@ export const shutdown = () => {
 }
 
 process.on('SIGINT', shutdown);
-
-main();
