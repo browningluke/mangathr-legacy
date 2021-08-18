@@ -130,10 +130,17 @@ export function main() {
 	run(mode, plugin, query).then();
 }
 
-export const shutdown = () => {
-	console.log("\nStopping...");
-
-	db.close().then().finally(() => process.exit());
+export const shutdown = async () => {
+	console.log("\rStopping...");
+	process.exit();
 }
 
-process.on('SIGINT', shutdown);
+process.on('SIGINT', () => {
+	shutdown().then();
+});
+
+process.on('exit', () => {
+	console.log("shutting db down");
+	db.close()
+		.finally(() => console.log("db shutdown"));
+})

@@ -22,11 +22,12 @@ const readLineAsync = (): Promise<string> => {
 
 const getUserSelection = async <O> (values: O[]): Promise<O> => {
 
+    let selection: any;
     try {
-        var selection = await cliSelect({ values: values });
+        selection = await cliSelect({ values: values });
     } catch (e) {
         // By definition, this is only thrown when the user sends 'SIGINT'.
-        shutdown();
+        await shutdown();
     }
 
     return selection!.value;
