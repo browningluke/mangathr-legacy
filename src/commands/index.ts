@@ -1,12 +1,13 @@
 import { handleListDialog } from "./list";
-import { handleDownloadDialog } from "./download";
-import { handleRegisterDialog } from "./register";
+import { handleDownloadDialog, initDownloadCommand } from "./download";
+import { handleRegisterDialog, initRegisterCommand } from "./register";
 import { handleUpdateDialog } from "./update";
-
 import { Database } from "../types/database";
-import { MangaPlugin } from "../types/plugin";
 
+import { Command as Commander } from 'commander';
 import { getUserSelection } from "../helpers/cli";
+
+const initFunctions = [initDownloadCommand, initRegisterCommand];
 
 const Commands = {
     'download': handleDownloadDialog,
@@ -14,13 +15,17 @@ const Commands = {
     'list': handleListDialog,
     'update': handleUpdateDialog
 }
-
-export type Command = keyof typeof Commands;
-
-export async function handleDialog(command: Command, db: Database, plugin?: MangaPlugin, query?: string) {
-    await Commands[command](db, plugin, query);
+export function initCommands(program: Commander, db: Database) {
+    for (const a of initFunctions) {
+        a(program, db)
+    }
 }
 
-export async function selectCommand(): Promise<Command> {
-    return getUserSelection(Object.keys(Commands) as Array<Command>);
+export async function handleDialog(db: Database) {
+    const command = await selectCommand();
+    await Commands[command](db);
+}
+
+async function selectCommand(): Promise<keyof typeof Commands> {
+    return getUserSelection(Object.keys(Commands) as Array<keyof typeof Commands>);
 }

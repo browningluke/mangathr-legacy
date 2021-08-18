@@ -1,8 +1,24 @@
 import { getNumber, getUserConfirmation, getUserSelection, readLineAsync } from "../helpers/cli";
-import { download, printTableAndMessage, searchQuery, selectPlugin } from "../helpers/commands";
+import { download, parsePlugin, printTableAndMessage, searchQuery, selectPlugin } from "../helpers/commands";
 import { MangaPlugin, Chapter, Manga } from "../types/plugin";
 import { Database } from "../types/database";
 import { delay } from "../helpers/async";
+
+import { Command as Commander } from 'commander';
+
+export function initDownloadCommand(program: Commander, db: Database) {
+    const downloadFunction = async (plugin: string, query: string, options: any) => {
+        let parsedPlugin = await parsePlugin(plugin);
+        let download = await createDownload(parsedPlugin, query);
+        options.y ? await download.allDownload(true) : await download.startDownloadDialog();
+    }
+
+    program
+        .command(`download <plugin> <query>`)
+        .description("")
+        .option('-y', '')
+        .action(downloadFunction);
+}
 
 export async function handleDownloadDialog(db: Database) {
     let plugin = await selectPlugin();

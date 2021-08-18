@@ -1,5 +1,5 @@
 #!/usr/bin/env node
 
-const { main } = require('../dist/main');
+const { run } = require('../dist/main');
 
-main();
+run().then();

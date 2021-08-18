@@ -1,10 +1,26 @@
 import { MangaPlugin } from "../types/plugin";
 import { Database } from "../types/database";
 import { MangaAlreadyRegisteredError } from "../exceptions";
-import { printTableAndMessage, searchQuery, selectPlugin } from "../helpers/commands";
+import { parsePlugin, printTableAndMessage, searchQuery, selectPlugin } from "../helpers/commands";
 import { getUserConfirmation } from "../helpers/cli";
 import { RSSManga } from "../types/plugin";
 import { MangaUpdate } from "../types/database";
+
+import { Command as Commander } from "commander"; // todo fix this
+
+export function initRegisterCommand(program: Commander, db: Database) {
+	const registerFunction = async (plugin: string, query: string, options: any) => {
+		let parsedPlugin = await parsePlugin(plugin);
+		let manga = await getManga(parsedPlugin, query);
+		await registerManga(db, manga, parsedPlugin, options.y);
+	}
+
+	program
+		.command(`register <plugin> <query>`)
+		.description("")
+		.option('-y', '')
+		.action(registerFunction);
+}
 
 export async function handleRegisterDialog(db: Database) {
 	let plugin = await selectPlugin();
