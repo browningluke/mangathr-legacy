@@ -1,5 +1,5 @@
 {
-  "name": "Mangathr",
+  "name": "mangathr",
   "version": "0.0.9",
   "description": "A terminal client for downloading manga, with support for sites like MangaDex, Cubari and more.",
   "main": "bin/mangathr.js",

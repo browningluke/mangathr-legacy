@@ -133,7 +133,7 @@ class Cubari implements MangaPlugin {
 		let { chapters, mangaTitle } = await this._getChapters(manga, cubariType, mangaURL);
 
 		let idMatch = /\/series\/(.*)\//.exec(mangaURL);
-		if (!idMatch) throw "Failed to get manga ID";
+		if (!idMatch) throw new Error("Failed to get manga ID.");
 		let id = `${cubariType}~${idMatch[1]}`;
 
 		return {
