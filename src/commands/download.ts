@@ -1,8 +1,19 @@
-import {getNumber, getUserConfirmation, getUserSelection, readLineAsync} from "../helpers/cli";
-import { download, printTableAndMessage, searchQuery } from "../helpers/commands";
+import { getNumber, getUserConfirmation, getUserSelection, readLineAsync } from "../helpers/cli";
+import { download, printTableAndMessage, searchQuery, selectPlugin } from "../helpers/commands";
 import { MangaPlugin, Chapter, Manga } from "../types/plugin";
 import { Database } from "../types/database";
 import { delay } from "../helpers/async";
+
+export async function handleDownloadDialog(db: Database) {
+    let plugin = await selectPlugin();
+    let download = await createDownload(plugin);
+    await download.startDownloadDialog();
+}
+
+async function createDownload(plugin: MangaPlugin, query?: string): Promise<Download> {
+    let manga = await searchQuery(plugin, false, query);
+    return new Download(manga, manga.chapters, plugin);
+}
 
 enum SubMode {
     DownloadSingle = "Download Single",
@@ -90,15 +101,16 @@ class Download {
         try {
             await download(this.chapters[chapterIndex], this.manga.title, this.plugin);
         } catch (e) {
-            //
+            console.log(e.message);
         }
     }
 
-    private async allDownload() {
-        let userResp = await getUserConfirmation(
-            `Are you sure you want to download all chapters? (y/n): `);
-        if (userResp == "n") return
-
+    public async allDownload(skipConfirmation = false) {
+        if (!skipConfirmation) {
+            let userResp = await getUserConfirmation(
+                `Are you sure you want to download all chapters? (y/n): `);
+            if (userResp == "n") return
+        }
         await this.startDownloadRange(this.chapters);
     }
 
@@ -209,18 +221,3 @@ class Download {
         await this.handleDownloadSubModes(selectedSubMode);
     }
 }
-
-async function handleDownloadDialog(db: Database, plugin: MangaPlugin, query?: string) {
-    let manga: Manga;
-    try {
-        manga = await searchQuery(plugin, false, query);
-    } catch (e) {
-        console.log(e.message);
-        return;
-    }
-
-    const download = new Download(manga, manga.chapters, plugin);
-    await download.startDownloadDialog();
-}
-
-export { handleDownloadDialog }
