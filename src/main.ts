@@ -1,8 +1,7 @@
 import { Plugins, PLUGINS } from "./plugins";
 import { SQLite } from "./databases/sqlite";
 
-import { Command, handleDownloadDialog, handleListDialog,
-	handleRegisterDialog, handleUpdateDialog } from "./commands";
+import { Command, selectCommand, handleDialog } from "./commands";
 import { MangaPlugin } from "./types/plugin";
 import { getUserSelection } from "./helpers/cli";
 
@@ -18,9 +17,6 @@ const db = new SQLite();
 	Selections
 */
 
-async function selectCommand(): Promise<Command> {
-	return getUserSelection(Object.values(Command));
-}
 
 async function selectPlugin(): Promise<MangaPlugin> {
 	let selectedPluginResp = await getUserSelection(Object.values(PLUGINS));
@@ -41,28 +37,12 @@ async function selectPlugin(): Promise<MangaPlugin> {
 */
 
 async function handleCommandSelection(command: Command, argPlugin?: MangaPlugin, query?: string) {
-	switch (command) {
-		case Command.List:
-			await handleListDialog(db);
-			return;
-		case Command.Update:
-			await handleUpdateDialog(db);
-			return;
+	if (command != "download" && command != "register") {
+		await handleDialog(command, db)
+		return;
 	}
-
 	const plugin = argPlugin ?? await selectPlugin();
-
-	switch (command) {
-		case Command.Download:
-			await handleDownloadDialog(db, plugin, query);
-			break
-		case Command.Register:
-			await handleRegisterDialog(db,plugin, query);
-			break
-		default:
-			throw "Selected mode not in enum. (This should never happen)"
-	}
-	return;
+	await handleDialog(command, db, plugin, query);
 }
 
 async function run(argMode?: Command, argPlugin?: MangaPlugin, query?: string) {
