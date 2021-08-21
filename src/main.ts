@@ -29,8 +29,8 @@ function handleArgsNew(db: Database) {
 	program.parse(process.argv);
 }
 
-export const shutdown = async () => {
-	console.log("\rStopping...");
+export const shutdown = async (q = false) => {
+	if (!q) console.log("\rStopping...");
 	process.exit();
 }
 

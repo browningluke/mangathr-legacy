@@ -88,8 +88,8 @@ async function deleteFromDatabase(db: Database, id?: string, skipConfirmation = 
     try {
         await item.destroy();
     } catch (e) {
-        console.log(`Failed to delete item. (${e.message})`);
-        await shutdown();
+        console.log(`An error occurred. Failed to delete item. (${e.message})`);
+        await shutdown(true);
     }
 
     console.log(`Deleted ${item.title}`);

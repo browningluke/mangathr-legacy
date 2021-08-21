@@ -14,7 +14,7 @@ async function searchQuery(plugin: MangaPlugin, register: boolean, argQuery?: st
         manga = register ? await Plugins.getUpdateUrl(query, plugin) : await Plugins.getManga(query, plugin)!;
     } catch (e) {
         console.log(`An error occurred, shutting down. (${e.message})`);
-        await shutdown();
+        await shutdown(true);
     }
 
     return manga!;
