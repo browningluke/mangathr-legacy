@@ -4,6 +4,7 @@ import { getUserConfirmation, readLineAsync } from "../helpers/cli";
 import { Database, MangaUpdate } from "../types/database";
 
 import { Command as Commander } from "commander";
+import Table from "cli-table3";
 
 export function initManageCommand(program: Commander, db: Database) {
     const deleteFunction = async (id: string, options: any) => {
@@ -95,12 +96,39 @@ async function deleteFromDatabase(db: Database, id?: string, skipConfirmation = 
 }
 
 async function printListFromDatabase(db: Database): Promise<MangaUpdate[]> {
+    let colWidths = [25, 20, 33];
+
+    let table = new Table({
+        head: ['title', 'id', 'chapters'],
+        chars: {'mid': '', 'left-mid': '', 'mid-mid': '', 'right-mid': ''},
+        colWidths: colWidths, wordWrap: true
+    });
+
     let mangaList: MangaUpdate[] = [];
 
     try {
         const printAllManga = async (manga: MangaUpdate) => {
             mangaList.push(manga);
-            console.log(`Title: ${manga.title}, Chapters: ${manga.chapters}`);
+
+            // Character length splitting (until https://github.com/cli-table/cli-table3/pull/217 is merged)
+            const addSpacesToStringAtLength = (str: string, length: number) => {
+                let usedString = str;
+                let stringList = [];
+
+                while (usedString.length > 0) {
+                    stringList.push(usedString.slice(0, length));
+                    usedString = usedString.slice(length)
+                }
+
+                return stringList.join(" ");
+            }
+
+            let id = addSpacesToStringAtLength(manga.id, colWidths[1] - 2);
+            let chapterString = manga.chapters.sort((a ,b) => { return a-b } ).join(", ");
+            chapterString = addSpacesToStringAtLength(chapterString, colWidths[2] - 2);
+
+            table.push([manga.title, id, chapterString]);
+
             return manga;
         }
         await db.forEach(printAllManga);
@@ -108,5 +136,6 @@ async function printListFromDatabase(db: Database): Promise<MangaUpdate[]> {
         console.error(err);
     }
 
+    console.log(table.toString())
     return mangaList;
 }
