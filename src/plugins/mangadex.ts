@@ -12,6 +12,11 @@ interface RawChapter extends Chapter {
     groups: string[]
 }
 
+enum URLType {
+    CHAPTER = "chapter",
+    TITLE = "title"
+}
+
 // TODO: support chapters with more than 500 total chapters (due to API query limit)
 
 class MangaDex implements MangaPlugin {
@@ -19,14 +24,20 @@ class MangaDex implements MangaPlugin {
     BASE_URL = "https://api.mangadex.org";
     NAME = PLUGINS.MANGADEX;
 
-    private static parseURL(query: string): string | null {
-        let urlMatch = /mangadex\.org\/title\/(.*?)($|\/|\?)/.exec(query);
+    private static parseURL(query: string): { id: string, type: URLType } | null {
+        // Attempt to match chapter/title URL
+        let urlMatch = /mangadex\.org\/(title|chapter)\/(.*?)($|\/|\?)/.exec(query);
 
-        let idMatch = /([\w\d]{8}-([\w\d]{4}-){3}[\w\d]{12}$)/.exec(query);
-
-        if (!urlMatch && !idMatch) return null;
-
-        return urlMatch ? urlMatch[1] : idMatch![1];
+        if (urlMatch && urlMatch[1] && urlMatch[2]) {
+            return {
+                id: urlMatch[2],
+                type: urlMatch[1] as URLType
+            }
+        } else {
+            // Only if URL match fails, then try to match ID (WITH TITLE ONLY)
+            let idMatch = /([\w\d]{8}-([\w\d]{4}-){3}[\w\d]{12}$)/.exec(query);
+            return idMatch ? { id: idMatch[1], type: URLType.TITLE } : null
+        }
     }
 
     private async searchQuery(query: string): Promise<string | null> {
@@ -43,6 +54,20 @@ class MangaDex implements MangaPlugin {
         return searchJSON['results'][0]["data"]["id"];
     }
 
+    private async getMangaInfoJSON(id: string) {
+        let mangaInfoResp = await Scraper.get(`${this.BASE_URL}/manga/${id}`);
+        let mangaInfoJSON = JSON.parse(mangaInfoResp.body);
+
+        if (mangaInfoJSON["result"] != "ok") {
+            throw new Error(mangaInfoJSON["errors"][0]["detail"]);
+        }
+        return mangaInfoJSON["data"];
+    }
+
+    /*
+        Handle User-queried Titles
+     */
+
     private async getGroupsForChapters(chapters: RawChapter[]): Promise<Chapter[]> {
         let scanlationGroups: any = {};
         let newChapters: Chapter[] = [];
@@ -50,7 +75,7 @@ class MangaDex implements MangaPlugin {
         for (const element of chapters) {
             let groups = [];
 
-            if (element.groups.length == 0) groups.push("NO GROUP LISTED");
+            if (element.groups.length == 0) groups.push("N/A");
 
             for (const id of element.groups) {
                 if (!(id in scanlationGroups)) {
@@ -82,15 +107,7 @@ class MangaDex implements MangaPlugin {
         return newChapters;
     }
 
-    private async getMangaAndID(query: string): Promise<{chapters: Chapter[], id: string, title: string}> {
-        let url = MangaDex.parseURL(query);
-
-        let id = url;
-        if (!url) {
-            id = await this.searchQuery(query);
-            if (!id) throw new Error("Could not find manga with that title.");
-        }
-
+    private async getChaptersFromTitleID(id: string): Promise<{chapters: Chapter[], id: string, title: string}> {
         let resp = await Scraper.get(`${this.BASE_URL}/manga/${id}/feed`, {
             limit: 500,
             "translatedLanguage[]": "en",
@@ -98,11 +115,9 @@ class MangaDex implements MangaPlugin {
         }, false);
 
         let respJSON = JSON.parse(resp.body);
-
-        let mangaInfoResp = await Scraper.get(`${this.BASE_URL}/manga/${id}`);
-        let mangaInfoJSON = JSON.parse(mangaInfoResp.body);
-
-        let mangaTitle = mangaInfoJSON["data"]["attributes"]["title"]["en"];
+        let mangaInfoJSON = await this.getMangaInfoJSON(id);
+        let mangaTitle = mangaInfoJSON["attributes"]["title"]["en"];
+        mangaTitle = mangaTitle ? mangaTitle : mangaInfoJSON["attributes"]["title"]["jp"];
 
         // Format all chapters
         let rawChapters: RawChapter[] = [];
@@ -161,8 +176,64 @@ class MangaDex implements MangaPlugin {
         return {
             title: mangaTitle,
             chapters: chapters,
-            id: mangaInfoJSON["data"]["id"]
+            id: mangaInfoJSON["id"]
         }
+    }
+
+    /*
+        Handle User-queried single Chapter
+     */
+
+    // NOTE: Returned ID is of parent TITLE not chapter
+    private async getChapterFromChapterID(id: string): Promise<{chapters: Chapter[], id: string, title: string}> {
+        let resp = await Scraper.get(`${this.BASE_URL}/chapter/${id}`);
+        let respJSON = JSON.parse(resp.body);
+
+        if (respJSON["result"] != "ok") {
+            throw new Error(respJSON["errors"][0]["detail"]);
+        }
+
+        let attributes = respJSON["data"]["attributes"];
+        let parentId = respJSON["relationships"]
+            .filter((a: { id: string, type: string }) => a.type ==  "manga")[0]["id"];
+
+        let parentInfoJSON = await this.getMangaInfoJSON(parentId);
+        let mangaTitle = parentInfoJSON["attributes"]["title"]["en"];
+        mangaTitle = mangaTitle ? mangaTitle : parentInfoJSON["attributes"]["title"]["jp"];
+
+        let opt: MDData = {
+            hash: attributes["hash"],
+            pages: attributes["data"]
+        }
+
+        let chapter = {
+            id: id,
+            title: attributes["title"],
+            num: attributes["chapter"],
+            opt: opt
+        }
+
+        return {
+            chapters: [chapter],
+            id: parentId,
+            title: mangaTitle
+        }
+    }
+
+    private async getMangaAndID(query: string): Promise<{chapters: Chapter[], id: string, title: string}> {
+        let parsedURL = MangaDex.parseURL(query);
+
+        let id = parsedURL ? parsedURL['id'] : await this.searchQuery(query);
+        let type = parsedURL ? parsedURL['type'] : URLType.TITLE;
+        if (!id) throw new Error("Could not find manga with that title.");
+
+        if (type == URLType.TITLE) {
+            return await this.getChaptersFromTitleID(id);
+        } else if (type == URLType.CHAPTER) {
+            return await this.getChapterFromChapterID(id);
+        }
+
+        throw new Error("URLType was somehow not title or chapter.");
     }
 
     async getManga(query: string): Promise<Manga> {
