@@ -5,7 +5,7 @@ export const PROJECT_NAME = "mangathr"
 export const DOWNLOAD_DIR = `${process.cwd()}/mangathr`//
 export const SQLITE_STORAGE = `${os.homedir()}/.${PROJECT_NAME}/database.sqlite`;
 
-export const TABLE_COL_WIDTHS = [9, 6, 50, 13];
+export const TABLE_COL_WIDTHS = [9, 9, 50, 13];
 
 // Mongodb WIP
 export const MONGO_DBNAME = "test";  // This needs to be moved to .env
