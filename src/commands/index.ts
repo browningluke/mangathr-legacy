@@ -1,4 +1,4 @@
-import { handleListDialog } from "./list";
+import { handleManageDialog, initManageCommand } from "./manage";
 import { handleDownloadDialog, initDownloadCommand } from "./download";
 import { handleRegisterDialog, initRegisterCommand } from "./register";
 import { handleUpdateDialog } from "./update";
@@ -7,12 +7,12 @@ import { Database } from "../types/database";
 import { Command as Commander } from 'commander';
 import { getUserSelection } from "../helpers/cli";
 
-const initFunctions = [initDownloadCommand, initRegisterCommand];
+const initFunctions = [initManageCommand, initDownloadCommand, initRegisterCommand];
 
 const Commands = {
     'download': handleDownloadDialog,
     'register': handleRegisterDialog,
-    'list': handleListDialog,
+    'manage': handleManageDialog,
     'update': handleUpdateDialog
 }
 export function initCommands(program: Commander, db: Database) {
