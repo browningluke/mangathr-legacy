@@ -30,7 +30,7 @@ export class SQLite implements Database {
         return await MangaSchema.create(obj);
     }
 
-    private static async find(obj: Partial<MangaUpdate>) {
+    public async find(obj: Partial<MangaUpdate>) {
         return await MangaSchema.findAll({
             where: obj
         })
@@ -45,7 +45,7 @@ export class SQLite implements Database {
     }
 
     async registerManga(manga: MangaUpdate) {
-        let obj = await SQLite.find({ plugin: manga.plugin, id: manga.id });
+        let obj = await this.find({ plugin: manga.plugin, id: manga.id });
 
         if (obj && obj.length != 0) {
             throw new MangaAlreadyRegisteredError();

@@ -4,6 +4,7 @@ export interface Database {
     setup(): Promise<void>;
     close(): Promise<void>;
     findAll();
+    find(obj: Partial<MangaUpdate>);
     registerManga(manga: MangaUpdate): Promise<void>;
     forEach(func: (manga: MangaUpdate) => Promise<MangaUpdate>, sleep?: number): Promise<void>;
 }
