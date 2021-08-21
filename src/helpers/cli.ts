@@ -3,8 +3,9 @@ import { isDownloaded } from "../downloader";
 import { shutdown } from "../main";
 
 import readline from 'readline';
-import Table from 'cli-table';
+import Table from 'cli-table3';
 import cliSelect from 'cli-select';
+import { TABLE_COL_WIDTHS } from "../constants";
 
 const readLineAsync = (): Promise<string> => {
     const rl = readline.createInterface({
@@ -72,7 +73,8 @@ async function getNumber(promptString: string, optChecks?: (num: number) => bool
 async function generateTable(chapters: Chapter[], mangaTitle: string) {
     let table = new Table({
         head: ['index', 'num', 'title', 'downloaded'],
-        chars: {'mid': '', 'left-mid': '', 'mid-mid': '', 'right-mid': ''}
+        chars: {'mid': '', 'left-mid': '', 'mid-mid': '', 'right-mid': ''},
+        colWidths: TABLE_COL_WIDTHS, wordWrap: true
     });
 
     chapters.forEach((item, i) => {

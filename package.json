@@ -17,7 +17,6 @@
   "devDependencies": {
     "@types/archiver": "^5.1.0",
     "@types/cheerio": "^0.22.28",
-    "@types/cli-table": "^0.3.0",
     "@types/express": "^4.17.11",
     "@types/mongodb": "^3.6.12",
     "@types/node": "^14.14.41",
@@ -31,7 +30,7 @@
     "archiver": "^5.3.0",
     "cheerio": "^1.0.0-rc.6",
     "cli-select": "^1.1.2",
-    "cli-table": "^0.3.6",
+    "cli-table3": "^0.6.0",
     "commander": "^8.1.0",
     "dotenv": "^10.0.0",
     "mongodb": "^3.6.6",
