@@ -6,10 +6,12 @@ import archiver from 'archiver';
 import fs from 'fs';
 import ProgressBar from 'progress';
 
+import { DOWNLOAD_DIR } from "./constants";
+
 function generatePath(reader: Reader, mangaTitle: string): { filepath: string, dirname: string } {
 	const title = (reader.num ? `${reader.num!} - ` : "") + `${reader.chapterTitle}`;
 
-	const dirname = `./imgs/${mangaTitle}`;
+	const dirname = `${DOWNLOAD_DIR}/${mangaTitle}`;
 	const filepath = `${dirname}/${title}.cbz`;
 
 	return { filepath: filepath, dirname: dirname };
