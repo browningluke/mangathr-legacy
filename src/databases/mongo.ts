@@ -3,11 +3,13 @@ import { MangaUpdate, Database } from "../types/database";
 import { MangaNotRegisteredError, MangaAlreadyRegisteredError } from "../exceptions";
 import { delay } from "../helpers/async";
 
+import { MONGO_URL, MONGO_DBNAME, MONGO_COLLNAME } from "../constants";
+
 const MC = require('mongodb').MongoClient;
 
-const databaseName = "test";   // This needs to be moved to .env
-const collectionName = "test"; // This needs to be hard coded
-const dbUrl = 'mongodb://root:example@localhost:10101'; // Debug url
+const databaseName = MONGO_DBNAME;
+const collectionName = MONGO_COLLNAME;
+const dbUrl = MONGO_URL;
 
 class Mongo implements Database {
 
