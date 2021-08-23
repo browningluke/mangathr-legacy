@@ -79,8 +79,21 @@ async function downloadChapter(reader: Reader, mangaTitle: string, refererUrl?: 
 	}
 
 	const getData = async (list: Image[], ms: number) => {
-		for (const item of list) {
-			await downloadImage(item, ms);
+		const sliceList = (length: number) => {
+			let usedList = list;
+			let stringList = [];
+
+			while (usedList.length > 0) {
+				stringList.push(usedList.slice(0, length));
+				usedList = usedList.slice(length)
+			}
+
+			return stringList;
+		}
+
+		for (const item of sliceList(SIMULTANEOUS_IMAGES)) {
+			let promiseList = item.map((i) => downloadImage(i, ms));
+			await Promise.all(promiseList);
 		}
 	}
 
