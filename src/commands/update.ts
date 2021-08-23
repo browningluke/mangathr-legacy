@@ -1,8 +1,9 @@
 import { Chapter } from "../types/plugin";
 import { Database, MangaUpdate } from "../types/database";
 import { Plugins } from "../plugins";
-import { delay } from "../helpers/async";
+// import { delay } from "../helpers/async";
 import { download } from "../helpers/commands";
+import { UPDATE_CHAPTER_DELAY_TIME } from "../constants";
 
 function findNewChapters(availableChapters: Chapter[],
                          currentChapters: number[]) {
@@ -39,7 +40,7 @@ const checkForNewChapters = async (manga: MangaUpdate) => {
 
             console.log(`Successfully downloaded ${chapter.title}`);
             allChapters.push(chapter.num!);
-            await delay(2000);
+            //await delay(UPDATE_CHAPTER_DELAY_TIME);
         }
 
         return {
@@ -58,7 +59,7 @@ async function handleUpdateDialog(db: Database) {
     console.log("Checking for new chapters.");
 
     try {
-        await db.forEach(checkForNewChapters, 2000);
+        await db.forEach(checkForNewChapters, UPDATE_CHAPTER_DELAY_TIME);
     } catch (err) {
         console.error(err);
     }

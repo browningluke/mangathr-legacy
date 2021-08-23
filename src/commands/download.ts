@@ -3,6 +3,7 @@ import { download, parsePlugin, printTableAndMessage, searchQuery, selectPlugin 
 import { MangaPlugin, Chapter, Manga } from "../types/plugin";
 import { Database } from "../types/database";
 import { delay } from "../helpers/async";
+import { CHAPTER_DELAY_TIME } from "../constants";
 
 import { Command as Commander } from 'commander';
 
@@ -66,7 +67,7 @@ class Download {
         //for (let i = 0; i < chapterRange.length; i++) {
         for (const chapter of chapterRange) {
             await download(chapter, this.manga.title, this.plugin);//, true);
-            await delay(200);
+            await delay(CHAPTER_DELAY_TIME);
         }
     }
 
