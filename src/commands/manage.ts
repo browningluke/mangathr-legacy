@@ -1,5 +1,5 @@
 import { shutdown } from "../main";
-import { getUserConfirmation, readLineAsync } from "../helpers/cli";
+import {getUserConfirmation, getUserSelection, readLineAsync} from "../helpers/cli";
 
 import { Database, MangaUpdate } from "../types/database";
 
@@ -32,7 +32,14 @@ export function initManageCommand(program: Commander, db: Database) {
 }
 
 export async function handleManageDialog(db: Database) {
-    return printListFromDatabase(db);
+    switch (await getUserSelection(["List", "Delete"])) {
+        case "List":
+            return printListFromDatabase(db)
+        case "Delete":
+            return deleteFromDatabase(db);
+        default:
+            throw new Error("Switch case outside available list.")
+    }
 }
 
 async function deleteFromDatabase(db: Database, id?: string, skipConfirmation = false) {
