@@ -6,12 +6,18 @@ import { getUserConfirmation } from "../helpers/cli";
 import { RSSManga } from "../types/plugin";
 import { MangaUpdate } from "../types/database";
 
-import { Command as Commander } from "commander"; // todo fix this
+import { Command as Commander } from "commander";
 
 export function initRegisterCommand(program: Commander, db: Database) {
 	const registerFunction = async (plugin: string, query: string, options: any) => {
 		let parsedPlugin = await parsePlugin(plugin);
 		let manga = await getManga(parsedPlugin, query);
+
+		if (!options.y) {
+			await printTableAndMessage(manga.chapters, manga.title, manga.chapters.length);
+			console.log((manga as RSSManga).id);
+		}
+
 		await registerManga(db, manga, parsedPlugin, options.y);
 	}
 
