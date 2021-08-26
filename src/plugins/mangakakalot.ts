@@ -1,13 +1,12 @@
 import { Scraper } from "../scraper";
 import { MangaPlugin, Chapter, Image, Manga, Reader, RSSManga } from "../types/plugin";
-import { PLUGINS } from "./index";
 import { pad } from "../helpers/plugins";
 
 const SEARCH_ENDPOINT = "/home_json_search";
 
-class Mangakakalot implements MangaPlugin {
+export default class Mangakakalot implements MangaPlugin {
     BASE_URL =  "https://mangakakalot.com";
-    NAME = PLUGINS.MANGAKAKALOT;
+    NAME = "Mangakakalot";
 
     async _getMangaPage(query: string, update = false): Promise<{ title: string, url: string, body: string }> {
         let mangaUrl;
@@ -132,5 +131,3 @@ class Mangakakalot implements MangaPlugin {
     }
 
 }
-
-export { Mangakakalot };

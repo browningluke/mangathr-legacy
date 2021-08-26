@@ -1,5 +1,3 @@
-import { PLUGINS } from "../plugins";
-
 export interface Database {
     setup(): Promise<void>;
     close(): Promise<void>;
@@ -11,7 +9,7 @@ export interface Database {
 
 // Database schema
 interface MangaUpdate {
-    plugin: PLUGINS;
+    plugin: string; // Loose type check (should always be one of ALL_PLUGIN_NAMES)
     title: string;
     id: string;
     //rss: boolean;

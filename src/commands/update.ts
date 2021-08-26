@@ -1,6 +1,6 @@
 import { Chapter } from "../types/plugin";
 import { Database, MangaUpdate } from "../types/database";
-import { Plugins } from "../plugins";
+import { getPluginFromMap } from "../plugins";
 // import { delay } from "../helpers/async";
 import { download } from "../helpers/commands";
 import { UPDATE_CHAPTER_DELAY_TIME } from "../constants";
@@ -20,9 +20,9 @@ function findNewChapters(availableChapters: Chapter[],
 const checkForNewChapters = async (manga: MangaUpdate) => {
     console.log(`--- Checking manga: ${manga.title} [with ${manga.plugin}] ---`);
 
-    const plugin = Plugins.PLUGINS[manga.plugin];
+    const plugin = getPluginFromMap(manga.plugin)!;
 
-    const availableChapters = await Plugins.getChaptersById(manga.id, plugin);
+    const availableChapters = await plugin.getChaptersById(manga.id);
     let allChapters: number[] = [...manga.chapters];
 
     let newChapters = findNewChapters(availableChapters, manga.chapters);

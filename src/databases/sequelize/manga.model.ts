@@ -1,5 +1,4 @@
 import { DataTypes, Sequelize, Model, Optional } from 'sequelize';
-import { PLUGINS } from "../../plugins";
 import { MangaUpdate } from "../../types/database";
 
 /*
@@ -17,7 +16,7 @@ export class MangaSchema extends Model<MangaAttributes, MangaCreationAttributes>
     public _id!: number;
     public chapters!: number[];
     public id!: string;
-    public plugin!: PLUGINS;
+    public plugin!: string; // Loose type check (should always be one of ALL_PLUGIN_NAMES)
     public title!: string;
 
     public readonly createdAt!: Date;

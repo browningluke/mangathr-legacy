@@ -1,4 +1,4 @@
-import { PLUGINS, Plugins } from "../plugins";
+import { ALL_PLUGIN_NAMES, getPluginFromMap } from "../plugins";
 import { generateTable, getUserSelection, readLineAsync } from "./cli";
 import { Chapter, Manga, MangaPlugin } from "../types/plugin";
 import { downloadChapter, isDownloaded } from "../downloader";
@@ -11,7 +11,7 @@ async function searchQuery(plugin: MangaPlugin, register: boolean, argQuery?: st
 
     let manga: Manga
     try {
-        manga = register ? await Plugins.getUpdateUrl(query, plugin) : await Plugins.getManga(query, plugin)!;
+        manga = register ? await plugin.getUpdateUrl(query) : await plugin.getManga(query);
     } catch (e) {
         console.log(`An error occurred, shutting down. (${e.message})`);
         await shutdown(true);
@@ -28,10 +28,10 @@ async function download(chapter: Chapter, mangaTitle: string, plugin: MangaPlugi
         return;
     }
 
-    let reader = await Plugins.selectChapter(chapter, plugin)!;
+    let reader = await plugin.selectChapter(chapter);
 
     try {
-        await downloadChapter(reader, mangaTitle, Plugins.getRefererUrl(plugin), quiet);
+        await downloadChapter(reader, mangaTitle, plugin.BASE_URL, quiet);
     } catch (e) {
         console.log(`Error. Download failed. (${e.message})`);
     }
@@ -43,13 +43,7 @@ async function printTableAndMessage(chapters: Chapter[], mangaTitle: string, num
 }
 
 async function parsePlugin(plugin: string): Promise<MangaPlugin> {
-    let parsedPlugin: MangaPlugin | undefined;
-    for (let [key, plug] of Object.entries(Plugins.PLUGINS)) {
-        if (plugin.toLowerCase() == key.toLowerCase()) {
-            parsedPlugin = plug;
-            break;
-        }
-    }
+    let parsedPlugin = getPluginFromMap(plugin);
 
     if (!parsedPlugin) {
         console.log("Plugin not recognized, please select plugin.");
@@ -60,14 +54,12 @@ async function parsePlugin(plugin: string): Promise<MangaPlugin> {
 }
 
 async function selectPlugin(): Promise<MangaPlugin> {
-    let selectedPluginResp = await getUserSelection(Object.values(PLUGINS));
+    let selectedPluginResp = await getUserSelection(Object.values(ALL_PLUGIN_NAMES));
 
-    let plugin: MangaPlugin;
-    try {
-        plugin = Plugins.PLUGINS[selectedPluginResp];
-    } catch (error) {
-        console.error("Could not find plugin!");
-        throw error;
+    let plugin = getPluginFromMap(selectedPluginResp);
+
+    if (!plugin) {
+        throw new Error("Could not find plugin!");
     }
 
     return plugin;

@@ -1,6 +1,5 @@
 import { Scraper } from "../scraper";
 import { MangaPlugin, Chapter, Image, Reader, Manga, RSSManga } from "../types/plugin";
-import { PLUGINS } from "./index";
 import { pad } from "../helpers/plugins";
 
 const API_URL = "https://cubari.moe/read/api/"
@@ -11,10 +10,10 @@ enum CubariType {
 	GIST = "gist"
 }
 
-class Cubari implements MangaPlugin {
+export default class Cubari implements MangaPlugin {
 	
 	BASE_URL = "https://cubari.moe";
-	NAME = PLUGINS.CUBARI;
+	NAME = "Cubari";
 
 	async _getMangaResp(query: string, api = false, apiType?: CubariType):
 		Promise<{ manga: any, cubariType: CubariType, mangaURL: string }> {
@@ -194,5 +193,3 @@ class Cubari implements MangaPlugin {
 	}
 
 }
-
-export { Cubari };

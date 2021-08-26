@@ -1,6 +1,5 @@
 import { Scraper } from "../scraper";
 import { MangaPlugin, Chapter, Image, Reader, Manga, RSSManga } from "../types/plugin";
-import { PLUGINS } from "./index";
 import { pad } from "../helpers/plugins";
 
 interface APIManga {
@@ -27,10 +26,10 @@ interface APIChapters {
 }
 
 
-class CatManga implements MangaPlugin {
+export default class CatManga implements MangaPlugin {
 
 	BASE_URL = "https://catmanga.org/";
-	NAME = PLUGINS.CATMANGA;
+	NAME = "Catmanga";
 	buildId: string | undefined;
 
 	private async setBuildIdFromIndex() {
@@ -193,5 +192,3 @@ function fuzzySearch(query: string, trueString: string): boolean {
 	return trueString.toLowerCase()
 		.indexOf(query.toLowerCase()) !== -1;
 }
-
-export { CatManga };

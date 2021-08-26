@@ -1,6 +1,5 @@
 import { Scraper } from "../scraper";
 import { MangaPlugin, Chapter, Image, Reader, Manga, RSSManga } from "../types/plugin";
-import { PLUGINS } from "./index";
 import { pad } from "../helpers/plugins";
 
 interface MDData {
@@ -19,10 +18,10 @@ enum URLType {
 
 // TODO: support chapters with more than 500 total chapters (due to API query limit)
 
-class MangaDex implements MangaPlugin {
+export default class MangaDex implements MangaPlugin {
 
     BASE_URL = "https://api.mangadex.org";
-    NAME = PLUGINS.MANGADEX;
+    NAME = "MangaDex";
 
     private static parseURL(query: string): { id: string, type: URLType } | null {
         // Attempt to match chapter/title URL
@@ -288,4 +287,3 @@ class MangaDex implements MangaPlugin {
     }
 }
 
-export { MangaDex };
