@@ -7,9 +7,11 @@ import Cubari from "./cubari";
 import MangaSushi from "./mangasushi";
 import Mangakakalot from "./mangakakalot";
 import MangaDex from "./mangadex";
+import Guya from "./guya";
 
 // Generate a map at runtime
-const pluginsList = [new Webtoons, new CatManga, new Cubari, new MangaDex, new MangaSushi, new Mangakakalot];
+const pluginsList = [new Webtoons, new CatManga, new Cubari, new MangaDex, new MangaSushi, new Mangakakalot,
+					 new Guya];
 export const ALL_PLUGIN_NAMES = pluginsList.map((a) => a.NAME);
 
 // Since TS types don't exist in the transpiled code, we can't define the type as:
