@@ -1,13 +1,13 @@
 import { handleManageDialog, initManageCommand } from "./manage";
 import { handleDownloadDialog, initDownloadCommand } from "./download";
 import { handleRegisterDialog, initRegisterCommand } from "./register";
-import { handleUpdateDialog } from "./update";
+import { handleUpdateDialog, initUpdateCommand } from "./update";
 import { Database } from "../types/database";
 
 import { Command as Commander } from 'commander';
 import { getUserSelection } from "../helpers/cli";
 
-const initFunctions = [initManageCommand, initDownloadCommand, initRegisterCommand];
+const initFunctions = [initManageCommand, initDownloadCommand, initRegisterCommand, initUpdateCommand];
 
 const Commands = {
     'download': handleDownloadDialog,

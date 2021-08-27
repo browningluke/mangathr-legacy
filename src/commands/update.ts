@@ -5,6 +5,29 @@ import { getPluginFromMap } from "../plugins";
 import { download } from "../helpers/commands";
 import { UPDATE_CHAPTER_DELAY_TIME } from "../constants";
 
+import { Command as Commander } from "commander";
+
+export function initUpdateCommand(program: Commander, db: Database) {
+   let updateFunction = async () => { await runUpdate(db); }
+
+    program
+       .command(`update`)
+       .description("Manage command description")
+       .action(updateFunction);
+}
+
+export async function handleUpdateDialog(db: Database) { await runUpdate(db); }
+
+async function runUpdate(db: Database) {
+    console.log("Checking for new chapters.");
+
+    try {
+        await db.forEach(checkForNewChapters, UPDATE_CHAPTER_DELAY_TIME);
+    } catch (err) {
+        console.error(err);
+    }
+}
+
 function findNewChapters(availableChapters: Chapter[],
                          currentChapters: number[]) {
     let newChapters: Chapter[] = [];
@@ -18,7 +41,7 @@ function findNewChapters(availableChapters: Chapter[],
 }
 
 const checkForNewChapters = async (manga: MangaUpdate) => {
-    console.log(`--- Checking manga: ${manga.title} [with ${manga.plugin}] ---`);
+    console.log("\x1b[1m", `--- Checking manga: ${manga.title} [with ${manga.plugin}] ---`, "\x1b[0m");
 
     const plugin = getPluginFromMap(manga.plugin)!;
 
@@ -31,7 +54,6 @@ const checkForNewChapters = async (manga: MangaUpdate) => {
 
         for (const chapter of newChapters) {
             try {
-                //await downloadTest(chapter, false);
                 await download(chapter, manga.title, plugin, false);
             } catch (err) {
                 console.log(`Failed to download ${chapter.title}`);
@@ -54,15 +76,3 @@ const checkForNewChapters = async (manga: MangaUpdate) => {
     console.log(`Found no new chapters for manga: ${manga.title} :(`);
     return manga;
 }
-
-async function handleUpdateDialog(db: Database) {
-    console.log("Checking for new chapters.");
-
-    try {
-        await db.forEach(checkForNewChapters, UPDATE_CHAPTER_DELAY_TIME);
-    } catch (err) {
-        console.error(err);
-    }
-}
-
-export { handleUpdateDialog };
