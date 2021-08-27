@@ -11,8 +11,8 @@ export function initManageCommand(program: Commander, db: Database) {
         await deleteFromDatabase(db, id, options.y);
     }
 
-    const listFunction = async () => {
-        await printListFromDatabase(db);
+    const listFunction = async (options: any) => {
+        await printListFromDatabase(db, options.showChapters);
     }
 
     let manageCommand = program
@@ -27,6 +27,7 @@ export function initManageCommand(program: Commander, db: Database) {
 
     manageCommand
         .command('list')
+        .option('--show-chapters', '')
         .description('list description')
         .action(listFunction);
 }
@@ -102,11 +103,11 @@ async function deleteFromDatabase(db: Database, id?: string, skipConfirmation = 
     console.log(`Deleted ${item.title}`);
 }
 
-async function printListFromDatabase(db: Database): Promise<MangaUpdate[]> {
-    let colWidths = [25, 20, 33];
+async function printListFromDatabase(db: Database, showChapters = false): Promise<MangaUpdate[]> {
+    let colWidths = showChapters ? [25, 20, 33] : [35, 43];
 
     let table = new Table({
-        head: ['title', 'id', 'chapters'],
+        head: showChapters ? ['title', 'id', 'chapters'] : ['title', 'id'],
         chars: {'mid': '', 'left-mid': '', 'mid-mid': '', 'right-mid': ''},
         colWidths: colWidths, wordWrap: true
     });
@@ -131,10 +132,16 @@ async function printListFromDatabase(db: Database): Promise<MangaUpdate[]> {
             }
 
             let id = addSpacesToStringAtLength(manga.id, colWidths[1] - 2);
-            let chapterString = manga.chapters.sort((a ,b) => { return a-b } ).join(", ");
-            chapterString = addSpacesToStringAtLength(chapterString, colWidths[2] - 2);
+            if (showChapters) {
+                let chapterString = manga.chapters.sort((a, b) => {
+                    return a - b
+                }).join(", ");
+                chapterString = addSpacesToStringAtLength(chapterString, colWidths[2] - 2);
 
-            table.push([manga.title, id, chapterString]);
+                table.push([manga.title, id, chapterString]);
+            } else {
+                table.push([manga.title, id]);
+            }
 
             return manga;
         }
@@ -143,6 +150,6 @@ async function printListFromDatabase(db: Database): Promise<MangaUpdate[]> {
         console.error(err);
     }
 
-    console.log(table.toString())
+    console.log(table.toString());
     return mangaList;
 }
