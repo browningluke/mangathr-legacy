@@ -17,18 +17,18 @@ export function initManageCommand(program: Commander, db: Database) {
 
     let manageCommand = program
         .command(`manage`)
-        .description("Manage command description");
+        .description("manage the manga currently registered in the database");
 
     manageCommand
         .command(`delete [id]`)
-        .description("delete description")
-        .option('-y', '')
+        .description("delete a specified manga from the database")
+        .option('-y', 'skip user confirmation')
         .action(deleteFunction);
 
     manageCommand
         .command('list')
-        .option('--show-chapters', '')
-        .description('list description')
+        .description('list all manga registered in the database')
+        .option('--show-chapters', "show 'Chapters' column")
         .action(listFunction);
 }
 

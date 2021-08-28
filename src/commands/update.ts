@@ -12,7 +12,7 @@ export function initUpdateCommand(program: Commander, db: Database) {
 
     program
        .command(`update`)
-       .description("Manage command description")
+       .description("check registered manga for new chapters")
        .action(updateFunction);
 }
 
