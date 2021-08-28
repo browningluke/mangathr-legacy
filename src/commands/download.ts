@@ -1,8 +1,36 @@
-import {getNumber, getUserConfirmation, getUserSelection, readLineAsync} from "../helpers/cli";
-import { download, printTableAndMessage, searchQuery } from "../helpers/commands";
+import { getNumber, getUserConfirmation, getUserSelection, readLineAsync } from "../helpers/cli";
+import { download, parsePlugin, printTableAndMessage, searchQuery, selectPlugin } from "../helpers/commands";
 import { MangaPlugin, Chapter, Manga } from "../types/plugin";
 import { Database } from "../types/database";
 import { delay } from "../helpers/async";
+import { CHAPTER_DELAY_TIME } from "../constants";
+
+import { Command as Commander } from 'commander';
+
+export function initDownloadCommand(program: Commander, db: Database) {
+    const downloadFunction = async (plugin: string, query: string, options: any) => {
+        let parsedPlugin = await parsePlugin(plugin);
+        let download = await createDownload(parsedPlugin, query);
+        options.y ? await download.allDownload(true) : await download.startDownloadDialog();
+    }
+
+    program
+        .command(`download <plugin> <query>`)
+        .description("download chapter(s) of a manga from plugin")
+        .option('-y', 'download all chapters without user confirmation')
+        .action(downloadFunction);
+}
+
+export async function handleDownloadDialog(db: Database) {
+    let plugin = await selectPlugin();
+    let download = await createDownload(plugin);
+    await download.startDownloadDialog();
+}
+
+async function createDownload(plugin: MangaPlugin, query?: string): Promise<Download> {
+    let manga = await searchQuery(plugin, false, query);
+    return new Download(manga, manga.chapters, plugin);
+}
 
 enum SubMode {
     DownloadSingle = "Download Single",
@@ -15,7 +43,8 @@ enum EditSubMode {
     BulkRenameRegex = "Rename All Chapters (regex)",
     RenameMangaTitle = "Edit title of manga",
     RenameChapterTitle = "Edit title of specific chapter",
-    ChangeNumber = "Edit number of specific chapter"
+    ChangeNumber = "Edit number of specific chapter",
+    Back = "Back"
 }
 
 class Download {
@@ -38,7 +67,7 @@ class Download {
         //for (let i = 0; i < chapterRange.length; i++) {
         for (const chapter of chapterRange) {
             await download(chapter, this.manga.title, this.plugin);//, true);
-            await delay(200);
+            await delay(CHAPTER_DELAY_TIME);
         }
     }
 
@@ -89,15 +118,16 @@ class Download {
         try {
             await download(this.chapters[chapterIndex], this.manga.title, this.plugin);
         } catch (e) {
-            //
+            console.log(e.message);
         }
     }
 
-    private async allDownload() {
-        let userResp = await getUserConfirmation(
-            `Are you sure you want to download all chapters? (y/n): `);
-        if (userResp == "n") return
-
+    public async allDownload(skipConfirmation = false) {
+        if (!skipConfirmation) {
+            let userResp = await getUserConfirmation(
+                `Are you sure you want to download all chapters? (y/n): `);
+            if (userResp == "n") return
+        }
         await this.startDownloadRange(this.chapters);
     }
 
@@ -190,6 +220,8 @@ class Download {
             case EditSubMode.ChangeNumber:
                 await this.editChapterNumber();
                 break;
+            case EditSubMode.Back:
+                break;
         }
         await this.startDownloadDialog();
     }
@@ -206,18 +238,3 @@ class Download {
         await this.handleDownloadSubModes(selectedSubMode);
     }
 }
-
-async function handleDownloadDialog(db: Database, plugin: MangaPlugin, query?: string) {
-    let manga: Manga;
-    try {
-        manga = await searchQuery(plugin, false, query);
-    } catch (e) {
-        console.log(e.message);
-        return;
-    }
-
-    const download = new Download(manga, manga.chapters, plugin);
-    await download.startDownloadDialog();
-}
-
-export { handleDownloadDialog }

@@ -1,8 +1,32 @@
 import { Chapter } from "../types/plugin";
 import { Database, MangaUpdate } from "../types/database";
-import { Plugins } from "../plugins";
-import { delay } from "../helpers/async";
+import { getPluginFromMap } from "../plugins";
+// import { delay } from "../helpers/async";
 import { download } from "../helpers/commands";
+import { UPDATE_CHAPTER_DELAY_TIME } from "../constants";
+
+import { Command as Commander } from "commander";
+
+export function initUpdateCommand(program: Commander, db: Database) {
+   let updateFunction = async () => { await runUpdate(db); }
+
+    program
+       .command(`update`)
+       .description("check registered manga for new chapters")
+       .action(updateFunction);
+}
+
+export async function handleUpdateDialog(db: Database) { await runUpdate(db); }
+
+async function runUpdate(db: Database) {
+    console.log("Checking for new chapters.");
+
+    try {
+        await db.forEach(checkForNewChapters, UPDATE_CHAPTER_DELAY_TIME);
+    } catch (err) {
+        console.error(err);
+    }
+}
 
 function findNewChapters(availableChapters: Chapter[],
                          currentChapters: number[]) {
@@ -17,11 +41,11 @@ function findNewChapters(availableChapters: Chapter[],
 }
 
 const checkForNewChapters = async (manga: MangaUpdate) => {
-    console.log(`--- Checking manga: ${manga.title} ---`);
+    console.log("\x1b[1m", `--- Checking manga: ${manga.title} [with ${manga.plugin}] ---`, "\x1b[0m");
 
-    const plugin = Plugins.PLUGINS[manga.plugin];
+    const plugin = getPluginFromMap(manga.plugin)!;
 
-    const availableChapters = await Plugins.getChaptersById(manga.id, plugin);
+    const availableChapters = await plugin.getChaptersById(manga.id);
     let allChapters: number[] = [...manga.chapters];
 
     let newChapters = findNewChapters(availableChapters, manga.chapters);
@@ -30,7 +54,6 @@ const checkForNewChapters = async (manga: MangaUpdate) => {
 
         for (const chapter of newChapters) {
             try {
-                //await downloadTest(chapter, false);
                 await download(chapter, manga.title, plugin, false);
             } catch (err) {
                 console.log(`Failed to download ${chapter.title}`);
@@ -39,7 +62,7 @@ const checkForNewChapters = async (manga: MangaUpdate) => {
 
             console.log(`Successfully downloaded ${chapter.title}`);
             allChapters.push(chapter.num!);
-            await delay(2000);
+            //await delay(UPDATE_CHAPTER_DELAY_TIME);
         }
 
         return {
@@ -53,15 +76,3 @@ const checkForNewChapters = async (manga: MangaUpdate) => {
     console.log(`Found no new chapters for manga: ${manga.title} :(`);
     return manga;
 }
-
-async function handleUpdateDialog(db: Database) {
-    console.log("Checking for new chapters.");
-
-    try {
-        await db.forEach(checkForNewChapters, 2000);
-    } catch (err) {
-        console.error(err);
-    }
-}
-
-export { handleUpdateDialog };

@@ -1,9 +1,8 @@
 import { Chapter, Reader, Manga, RSSManga } from "../types";
-import { PLUGINS } from "../plugins";
 
 export interface MangaPlugin {
     BASE_URL: string;
-    NAME: PLUGINS;
+    NAME: string;
     getUpdateUrl(query: string): Promise<RSSManga>;
     getManga(query: string): Promise<Manga>;
     getChaptersById(id: string): Promise<Chapter[]>;
@@ -25,6 +24,8 @@ export interface Chapter {
     url?: string;
     title: string;
     num: number;
+    opt?: any; // Stores any misc info, preventing
+               // the need to make duplicate HTTP requests.
 }
 
 export interface Image {

@@ -6,10 +6,12 @@ import archiver from 'archiver';
 import fs from 'fs';
 import ProgressBar from 'progress';
 
+import { DOWNLOAD_DIR, SIMULTANEOUS_IMAGES, IMAGE_DELAY_TIME } from "./constants";
+
 function generatePath(reader: Reader, mangaTitle: string): { filepath: string, dirname: string } {
 	const title = (reader.num ? `${reader.num!} - ` : "") + `${reader.chapterTitle}`;
 
-	const dirname = `./imgs/${mangaTitle}`;
+	const dirname = `${DOWNLOAD_DIR}/${mangaTitle}`;
 	const filepath = `${dirname}/${title}.cbz`;
 
 	return { filepath: filepath, dirname: dirname };
@@ -23,14 +25,15 @@ function isDownloaded(mangaTitle: string, chapterTitle: string, num: number): bo
 }
 
 async function downloadChapter(reader: Reader, mangaTitle: string, refererUrl?: string,
-								silent = false, delayTime = 100): Promise<void> {
+								silent = false, delayTime = IMAGE_DELAY_TIME): Promise<void> {
 	const { filepath, dirname } = generatePath(reader, mangaTitle);
 
 	await fs.promises.mkdir(dirname, { recursive: true });
 
 	if (fs.existsSync(filepath)) {
 		if (!silent) console.log(`Skipping ${reader.chapterTitle}, already downloaded.`);
-		throw "Already exists";
+		//throw "Already exists";
+		return;
 	} // Short circuit rather than overwriting.
 
 	const output = fs.createWriteStream(filepath);
@@ -64,7 +67,8 @@ async function downloadChapter(reader: Reader, mangaTitle: string, refererUrl?: 
 		try {
 			res = await retryFetch(image.url, refererHeader, 10, 1000)
 		} catch (e) {
-			throw "Failed downloading an image. Giving up on this chapter.";
+			fs.rmSync(filepath);
+			throw new Error("Failed downloading an image. Giving up on this chapter.");
 		}
 		const buffer = await res.buffer()
 		//console.log(`Status: ${res.status} Filename: ${image.filename}`);
@@ -75,8 +79,21 @@ async function downloadChapter(reader: Reader, mangaTitle: string, refererUrl?: 
 	}
 
 	const getData = async (list: Image[], ms: number) => {
-		for (const item of list) {
-			await downloadImage(item, ms);
+		const sliceList = (length: number) => {
+			let usedList = list;
+			let stringList = [];
+
+			while (usedList.length > 0) {
+				stringList.push(usedList.slice(0, length));
+				usedList = usedList.slice(length)
+			}
+
+			return stringList;
+		}
+
+		for (const item of sliceList(SIMULTANEOUS_IMAGES)) {
+			let promiseList = item.map((i) => downloadImage(i, ms));
+			await Promise.all(promiseList);
 		}
 	}
 
@@ -88,7 +105,7 @@ async function downloadChapter(reader: Reader, mangaTitle: string, refererUrl?: 
 		if (!silent) console.log("Added ComicInfo!");
 	}
 
-	archive.finalize();
+	await archive.finalize();
 	if (!silent) console.log("Finished downloading!");
 }
 

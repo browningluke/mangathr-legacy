@@ -1,14 +1,13 @@
-import { PLUGINS } from "./index";
 import { Scraper } from "../scraper";
 import { MangaPlugin, Chapter, Image, Manga, Reader, RSSManga } from "../types/plugin";
 import { pad } from "../helpers/plugins";
 
 const API_ENDPOINT = "/wp-admin/admin-ajax.php";
 
-class MangaSushi implements MangaPlugin {
+export default class MangaSushi implements MangaPlugin {
 
     BASE_URL = "https://mangasushi.net";
-    NAME = PLUGINS.MANGASUSHI;
+    NAME = "MangaSushi";
 
     async _getMangaPage(query: string): Promise<{ mangaTitle: string, mangaId: string }> {
         const res = await Scraper.post(`${this.BASE_URL}${API_ENDPOINT}`, {
@@ -130,5 +129,3 @@ class MangaSushi implements MangaPlugin {
         }
     }
 }
-
-export { MangaSushi };

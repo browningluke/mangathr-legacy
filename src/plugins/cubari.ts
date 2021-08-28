@@ -1,42 +1,53 @@
 import { Scraper } from "../scraper";
 import { MangaPlugin, Chapter, Image, Reader, Manga, RSSManga } from "../types/plugin";
-import { PLUGINS } from "./index";
 import { pad } from "../helpers/plugins";
 
 const API_URL = "https://cubari.moe/read/api/"
 
-class Cubari implements MangaPlugin {
+enum CubariType {
+	IMGUR = "imgur",
+	MANGADEX = "mangadex",
+	GIST = "gist"
+}
+
+export default class Cubari implements MangaPlugin {
 	
 	BASE_URL = "https://cubari.moe";
-	NAME = PLUGINS.CUBARI;
+	NAME = "Cubari";
 
-	async _getMangaResp(query: string, api = false):
-		Promise<{ manga: any, cubariType: string, mangaURL: string }> {
+	async _getMangaResp(query: string, api = false, apiType?: CubariType):
+		Promise<{ manga: any, cubariType: CubariType, mangaURL: string }> {
 
-		let cubariType;
+		let cubariType: CubariType;
 		let mangaURL;
 
 		if (!api) {
 			let cubariURLMatch = /\/read\/(\w+)\/(.+?)\//.exec(query);
+			let mangadexURLMatch = /mangadex\.org\/title\/(.+)/.exec(query);
 
-			if (!cubariURLMatch) {
+			let mangaSlug: string;
+			if (cubariURLMatch) {
+				let rawCubariType = cubariURLMatch![1]; // "imgur" or "gist"
+				cubariType = rawCubariType as CubariType;
+				mangaSlug = cubariURLMatch![2];
+
+			} else if (mangadexURLMatch) {
+				cubariType = CubariType.MANGADEX;
+				mangaSlug = mangadexURLMatch![1];
+
+			} else {
 				throw new Error("Invalid Cubari URL.");
 			}
 
-			cubariType = cubariURLMatch![1]; // "imgur" or "gist"
-			let mangaSlug = cubariURLMatch![2];
 			mangaURL = API_URL + cubariType + "/series/" + mangaSlug + "/";
 		} else {
-			cubariType = 'gist';
-			mangaURL = `${API_URL}gist/series/${query}/`;
+			cubariType = apiType!;
+			mangaURL = `${API_URL}${apiType}/series/${query}/`;
 		}
 
-
-		if (cubariType != "gist" && cubariType != "imgur") {
-			throw new Error("Invalid Cubari URL.");
-		}
-
-		let mangaJSONString = (await Scraper.get(mangaURL)).body;
+		let mangaJSONResp = await Scraper.get(mangaURL);
+		if (mangaJSONResp.status_code != 200) throw Error("Failed to get manga information.");
+		let mangaJSONString = mangaJSONResp.body;
 
 		if (!mangaJSONString) {
 			throw new Error("Failed to get JSON data.");
@@ -51,7 +62,7 @@ class Cubari implements MangaPlugin {
 		return { manga, cubariType, mangaURL };
 	}
 
-	_getChapters(manga: any, cubariType: string, mangaURL: string) {
+	_getChapters(manga: any, cubariType: CubariType, mangaURL: string) {
 		let mangaTitle = manga["title"];
 
 		if (!mangaTitle) {
@@ -60,7 +71,7 @@ class Cubari implements MangaPlugin {
 
 		let chapters: Chapter[] = [];
 
-		if (cubariType == "gist") {
+		if (cubariType == CubariType.GIST || cubariType == CubariType.MANGADEX) {
 			let chapterIndexAsArray = Object.keys(manga["chapters"]); // Since manga.chapters is an obj.
 			chapterIndexAsArray.forEach((index) => {
 				const chapter = manga["chapters"][index];
@@ -73,7 +84,13 @@ class Cubari implements MangaPlugin {
 
 				let titleRaw = chapter["title"];
 				let title = titleRaw;
-				if (!titleRaw.toLowerCase().includes("chapter") || !titleRaw.toLowerCase().includes("ch")) {
+
+				// Check for empty or null titles
+				if (titleRaw == null || titleRaw == "") {
+					title = `Chapter ${number}`
+				} else if (!titleRaw.toLowerCase().includes("chapter") ||
+					!titleRaw.toLowerCase().includes("ch")) {
+
 					title = `Chapter ${number} - ${titleRaw}`;
 				}
 
@@ -81,7 +98,7 @@ class Cubari implements MangaPlugin {
 					title: title,
 					url: `${this.BASE_URL}${proxyURL}`,
 					num: number,
-					id: "gist"
+					id: cubariType
 				});
 			});
 		} else {
@@ -97,7 +114,7 @@ class Cubari implements MangaPlugin {
 				title: chapterTitle,
 				url: mangaURL,
 				num: chapterNum,
-				id: "imgur"
+				id: CubariType.IMGUR
 			});
 		}
 
@@ -110,13 +127,13 @@ class Cubari implements MangaPlugin {
 	async getUpdateUrl(query: string): Promise<RSSManga> {
 		let { manga, cubariType, mangaURL } = await this._getMangaResp(query);
 
-		if (cubariType == 'imgur') throw new Error("Registering not supported for Imgur chapters.");
+		if (cubariType == CubariType.IMGUR) throw new Error("Registering not supported for Imgur chapters.");
 
 		let { chapters, mangaTitle } = await this._getChapters(manga, cubariType, mangaURL);
 
 		let idMatch = /\/series\/(.*)\//.exec(mangaURL);
-		if (!idMatch) throw "Failed to get manga ID";
-		let id = idMatch[1];
+		if (!idMatch) throw new Error("Failed to get manga ID.");
+		let id = `${cubariType}~${idMatch[1]}`;
 
 		return {
 			title: mangaTitle,
@@ -126,8 +143,8 @@ class Cubari implements MangaPlugin {
 		}
 	}
 
-	async getManga(query: string, api?: boolean): Promise<Manga> {
-		let { manga, cubariType, mangaURL } = await this._getMangaResp(query, api);
+	async getManga(query: string, api?: boolean, apiType?: CubariType): Promise<Manga> {
+		let { manga, cubariType, mangaURL } = await this._getMangaResp(query, api, apiType);
 		let { chapters, mangaTitle } = await this._getChapters(manga, cubariType, mangaURL);
 
 		return {
@@ -137,21 +154,27 @@ class Cubari implements MangaPlugin {
 	}
 
 	async getChaptersById(id: string): Promise<Chapter[]> {
-		return (await this.getManga(id, true)).chapters;
+		let x = /(.*)~(.*)/.exec(id);
+		let rawCubariType = x![1];
+		let mangaId = x![2];
+		let cubariType: CubariType = rawCubariType as CubariType;
+
+		return (await this.getManga(mangaId, true, cubariType)).chapters;
 	}
 
 	async selectChapter(chapter: Chapter): Promise<Reader> {
 		const resp = await Scraper.get(chapter.url!);
-		const cubariType = chapter.id!;
+		const rawCubariType = chapter.id!;
+		const cubariType = rawCubariType as CubariType;
 
 		const body = JSON.parse(resp.body);
 
-		const pages = cubariType == "imgur" ? body.chapters[1].groups[1] : body;
+		const pages = cubariType == CubariType.IMGUR ? body.chapters[1].groups[1] : body;
 
 		let imgURLs: Image[] = [];
 		const digits = Math.floor(Math.log10(pages.length)) + 1;
 		pages.forEach((element: any, i: number) => {
-			const url = element["src"];
+			const url = cubariType == CubariType.MANGADEX ? element : element["src"];
 			let extensionMatch = /\.(\w{3})($|\?\w+)/.exec(url);
 			if (!extensionMatch) throw "no extension";
 	
@@ -170,5 +193,3 @@ class Cubari implements MangaPlugin {
 	}
 
 }
-
-export { Cubari };

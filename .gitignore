@@ -121,3 +121,8 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# MacOS Files
+.DS_Store
+
+database/

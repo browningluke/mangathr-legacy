@@ -3,11 +3,13 @@ import { MangaUpdate, Database } from "../types/database";
 import { MangaNotRegisteredError, MangaAlreadyRegisteredError } from "../exceptions";
 import { delay } from "../helpers/async";
 
+import { MONGO_URL, MONGO_DBNAME, MONGO_COLLNAME } from "../constants";
+
 const MC = require('mongodb').MongoClient;
 
-const databaseName = "test";   // This needs to be moved to .env
-const collectionName = "test"; // This needs to be hard coded
-const dbUrl = 'mongodb://root:example@localhost:10101'; // Debug url
+const databaseName = MONGO_DBNAME;
+const collectionName = MONGO_COLLNAME;
+const dbUrl = MONGO_URL;
 
 class Mongo implements Database {
 
@@ -42,7 +44,7 @@ class Mongo implements Database {
 	/**
 	 * @throws {DbOrCollectionNotInitializedError}
 	 */
-	_ensureSetupRan() {
+	private _ensureSetupRan() {
 		if (!this.db || !this.collection) {
 			throw new DbOrCollectionNotInitializedError();
 		}
@@ -52,7 +54,7 @@ class Mongo implements Database {
 	 * @throws {Error}
 	 * @param obj
 	 */
-	async _find(obj: any): Promise<any[] | undefined> {
+	public async find(obj: Partial<MangaUpdate>): Promise<any[] | undefined> {
 		this._ensureSetupRan();
 		return this.collection!.find(obj).toArray();
 	}
@@ -81,7 +83,7 @@ class Mongo implements Database {
 	 * @param newValues
 	 * @return {any}
 	 */
-	async _update(searchObj: any, newValues: any): Promise<any> {
+	private async _update(searchObj: any, newValues: any): Promise<any> {
 		this._ensureSetupRan();
 
 		try {
@@ -95,8 +97,8 @@ class Mongo implements Database {
 		Main functions
 	 */
 
-	async registerManga(manga: MangaUpdate) {
-		let obj = await this._find({ plugin: manga.plugin, title: manga.title, id: manga.id });
+	public async registerManga(manga: MangaUpdate) {
+		let obj = await this.find({ plugin: manga.plugin, title: manga.title, id: manga.id });
 
 		if (obj && obj.length != 0) {
 			throw new MangaAlreadyRegisteredError();
@@ -110,7 +112,7 @@ class Mongo implements Database {
 	 * @param func
 	 * @param sleep
 	 */
-	async forEach(func: (manga: MangaUpdate) => Promise<MangaUpdate>, sleep?: number) {
+	public async forEach(func: (manga: MangaUpdate) => Promise<MangaUpdate>, sleep?: number) {
 		let allManga: MangaUpdate[] | undefined = await this.findAll();
 
 		if (!allManga) throw new Error("ERROR: failed to load manga from db");
@@ -124,10 +126,10 @@ class Mongo implements Database {
 		}
 	}
 
-	async _updateMangaInDatabase(manga: MangaUpdate) {
+	public async _updateMangaInDatabase(manga: MangaUpdate) {
 		let searchObj = { plugin: manga.plugin, title: manga.title, id: manga.id };
 
-		let obj = await this._find(searchObj);
+		let obj = await this.find(searchObj);
 
 		if (!obj || obj.length == 0) {
 			throw new MangaNotRegisteredError();

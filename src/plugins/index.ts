@@ -1,55 +1,29 @@
-import { MangaPlugin, Chapter, Reader, Manga } from "../types/plugin";
-import { Webtoons } from "./webtoons";
-import { CatManga } from "./catmanga";
-import { Cubari } from "./cubari";
-import { MangaSushi } from "./mangasushi";
-import { Mangakakalot } from "./mangakakalot";
+import { MangaPlugin } from "../types/plugin";
 
-enum PLUGINS {
-	WEBTOONS = "Webtoons",
-	CATMANGA = "Catmanga",
-	CUBARI = "Cubari",
-	MANGASUSHI = "MangaSushi",
-	MANGAKAKALOT = "Mangakakalot"
+// Plugins
+import Webtoons from "./webtoons";
+import CatManga from "./catmanga";
+import Cubari from "./cubari";
+import MangaSushi from "./mangasushi";
+import Mangakakalot from "./mangakakalot";
+import MangaDex from "./mangadex";
+import Guya from "./guya";
+
+// Generate a map at runtime
+const pluginsList = [new Webtoons, new CatManga, new Cubari, new MangaDex, new MangaSushi, new Mangakakalot,
+					 new Guya];
+export const ALL_PLUGIN_NAMES = pluginsList.map((a) => a.NAME);
+
+// Since TS types don't exist in the transpiled code, we can't define the type as:
+// { string: MangaPlugin }
+// since the object is generated at runtime. Instead we assign it type of 'any' and
+// handle the type guarding with the `getPlugin` method.
+const pluginMap: any = pluginsList.reduce((a, b) => {
+	// @ts-ignore
+	a[b.NAME.toLowerCase()] = b;
+	return a;
+}, {});
+
+export function getPluginFromMap(name: string): MangaPlugin | undefined {
+	return pluginMap[name.toLowerCase()];
 }
-
-class Plugins {
-
-	static WEBTOONS = new Webtoons();
-	static CATMANGA = new CatManga();
-	static CUBARI = new Cubari();
-	static MANGASUSHI = new MangaSushi();
-	static MANGAKAKALOT = new Mangakakalot();
-
-	static PLUGINS = {
-		"Webtoons": Plugins.WEBTOONS,
-		"Catmanga": Plugins.CATMANGA,
-		"Cubari": Plugins.CUBARI,
-		"MangaSushi": Plugins.MANGASUSHI,
-		"Mangakakalot": Plugins.MANGAKAKALOT
-	};
-	static PLUGIN_NAMES = Object.keys(Plugins.PLUGINS);
-
-	static getManga(query: string, plugin: MangaPlugin): Promise<Manga> | undefined {
-		return plugin.getManga(query);
-	}
-
-	static selectChapter(chapter: Chapter, plugin: MangaPlugin): Promise<Reader> | undefined {
-		return plugin.selectChapter(chapter);
-	}
-
-	static getRefererUrl(plugin: MangaPlugin): string | undefined {
-		return plugin.BASE_URL;
-	}
-
-	static getUpdateUrl(query: string, plugin: MangaPlugin) {
-		return plugin.getUpdateUrl(query);
-	}
-
-	static getChaptersById(id: string, plugin: MangaPlugin) {
-		return plugin.getChaptersById(id);
-	}
-
-}
-
-export { Plugins, PLUGINS };

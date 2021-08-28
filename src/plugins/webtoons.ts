@@ -1,6 +1,5 @@
 import { Scraper } from "../scraper";
 import { MangaPlugin, Chapter, Image, Reader, Manga, RSSManga } from "../types/plugin";
-import { PLUGINS } from "./index";
 import { pad } from "../helpers/plugins";
 
 import Parser from "rss-parser";
@@ -10,11 +9,11 @@ const SEARCH_URL = "https://ac.webtoons.com/ac?q=en%5E";
 const SEARCH_PARAMS = "&q_enc=UTF-8&st=1&r_format=json&r_enc=UTF-8";
 const LIST_ENDPOINT = "/episodeList?titleNo=";
 
-class Webtoons implements MangaPlugin {
+export default class Webtoons implements MangaPlugin {
 	
 	BASE_URL = "https://www.webtoons.com";
 	static MOBILE_URL = "https://m.webtoons.com";
-	NAME = PLUGINS.WEBTOONS;
+	NAME = "Webtoons";
 	
 	async _getMangaPage(query: string): Promise<{ body: string, urlLocation: string }> {
 		const searchURL = `${SEARCH_URL}${encodeURI(query)}${SEARCH_PARAMS}`;
@@ -152,5 +151,3 @@ class Webtoons implements MangaPlugin {
 	}
 
 }
-
-export { Webtoons };

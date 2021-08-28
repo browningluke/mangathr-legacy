@@ -17,10 +17,25 @@ export const retryFetch = (url: string, fetchOptions = {},
 
         const wrapper = (n: number) => {
             fetch(url, fetchOptions)
-                .then((res: Response) => { resolve(res) })
+                .then(async (res: Response) => {
+                    if (res.status >= 400 && res.status <= 600) {
+                        if(n > 0) {
+                            process.stdout.clearLine(1);
+                            process.stdout.write(`\rRETRYING ${n} MORE TIMES`);
+                            await delay(retryDelay)
+                            wrapper(--n)
+                        } else {
+                            console.error(`Error ${res.status} ${res.statusText}`);
+                            reject();
+                        }
+                    } else {
+                        resolve(res);
+                    }
+                })
                 .catch(async (err: any) => {
                     if(n > 0) {
-                        console.log(`retrying ${n}`)
+                        process.stdout.clearLine(1);
+                        process.stdout.write(`\rretrying ${n}`);
                         await delay(retryDelay)
                         wrapper(--n)
                     } else {
