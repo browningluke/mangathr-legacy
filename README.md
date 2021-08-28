@@ -2,7 +2,7 @@
 
 **mangathr** is a command-line program to download manga chapters from numerous online platforms (See [Plugins](#plugins)). It supports monitoring ongoing manga to check for new chapters. It bundles each chapters with an accompanying ComicInfo.xml for correct numbering in manga readers such as [Komga](https://github.com/gotson/komga).
 
-<p align="center"><img src="./.github/readme-images/demo.gif" /></p>
+<p align="center"><img src="https://raw.githubusercontent.com/browningluke/mangathr/master/.github/readme_images/demo.gif" /></p>
 
 &nbsp;
 
