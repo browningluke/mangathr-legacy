@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "description": "A terminal client for downloading manga, with support for sites like MangaDex, Cubari and more.",
   "main": "bin/mangathr.js",
+  "repository": "git://github.com/browningluke/mangathr.git",
+  "prepublish": "tsc",
+  "files": ["dist"],
   "scripts": {
     "build": "tsc",
     "start": "node bin/mangathr.js",
