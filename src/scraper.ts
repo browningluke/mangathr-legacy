@@ -13,11 +13,11 @@ class Scraper {
 		let urlParams: URLSearchParams | string = "?";
 
 		if (escape) {
-			urlParams = new URLSearchParams(params);
+			urlParams += new URLSearchParams(params);
 		} else if (params) {
 			for (const [key, value] of Object.entries(params)) {
 				const knownVal = value as string | number | boolean;
-				urlParams += `${key}=${value}&`
+				urlParams += `${key}=${knownVal}&`
 			}
 		}
 
@@ -34,9 +34,11 @@ class Scraper {
 	static async post(url: string, body?: any, options?: any): Promise<GetObject> {
 		const searchParams = new URLSearchParams();
 
-		for (const [key, value] of Object.entries(body)) {
-			const knownVal = value as string | number | boolean;
-			searchParams.append(key, knownVal.toString());
+		if (body) {
+			for (const [key, value] of Object.entries(body)) {
+				const knownVal = value as string | number | boolean;
+				searchParams.append(key, knownVal.toString());
+			}
 		}
 
 		const res: Response = await fetch(url, options ?? {
