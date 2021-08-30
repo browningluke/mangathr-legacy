@@ -70,7 +70,7 @@ Ensure you have `npm` and `node` installed and run the following comands:
 
 ### Mangadex
 
-Accepts Mangdex `title` or `chapter` URLs as query; as well as a `title` ID.
+Accepts any search query and returns the closest match. Also accepts Mangdex `title` or `chapter` URLs as query; as well as a `title` ID.
 
 E.g.
 - `mangadex.org/title/TITLE_ID`
