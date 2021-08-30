@@ -1,3 +1,6 @@
+# JS test files
+test/*.js
+
 # Imgs saved location
 imgs
 
