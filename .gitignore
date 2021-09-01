@@ -1,5 +1,5 @@
 # JS test files
-test/*.js
+test/**/*.js
 
 # Imgs saved location
 imgs
@@ -128,4 +128,4 @@ dist
 # MacOS Files
 .DS_Store
 
-database/
+/database/
