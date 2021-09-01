@@ -1,6 +1,6 @@
-import { downloadChapter } from "../src/downloader";
-import { Image, Reader } from "../src/types/plugin";
-import { DOWNLOAD_DIR } from "../src/constants";
+import { downloadChapter } from "@core/downloader";
+import { Image, Reader } from "plugin";
+import { DOWNLOAD_DIR } from "@core/constants";
 
 import fs from 'fs';
 import StreamZip from 'node-stream-zip';
@@ -30,6 +30,9 @@ describe('Downloader', function () {
 
     const testMangaName = "test-manga";
     const path = `${DOWNLOAD_DIR}/${testMangaName}/${testReader.num} - ${testReader.chapterTitle}.cbz`;
+
+    // Clean up once done
+    afterAll(async function () { await fsPromises.rm(path); });
 
     describe('Download & zip', function () {
         it('should download without error', async () => {

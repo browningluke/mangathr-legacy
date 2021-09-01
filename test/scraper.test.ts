@@ -1,4 +1,4 @@
-import { Scraper } from "../src/scraper";
+import { Scraper } from "@core/scraper";
 
 describe('Scraper Requests', function () {
 

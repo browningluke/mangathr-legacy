@@ -1,6 +1,6 @@
-import { SQLite } from "../../src/databases/sqlite";
-import { Database, MangaUpdate } from "../../src/types/database";
-import { MangaAlreadyRegisteredError } from "../../src/exceptions";
+import { SQLite } from "@databases/sqlite";
+import { Database, MangaUpdate } from "database";
+import { MangaAlreadyRegisteredError } from "@core/exceptions";
 
 describe('SQLite', function () {
 
