@@ -1,8 +1,8 @@
-import { ALL_PLUGIN_NAMES, getPluginFromMap } from "../plugins";
+import { ALL_PLUGIN_NAMES, getPluginFromMap } from "@core/plugins";
 import { generateTable, getUserSelection, readLineAsync } from "./cli";
-import { Chapter, Manga, MangaPlugin } from "../types/plugin";
-import { downloadChapter, isDownloaded } from "../downloader";
-import { shutdown } from "../main";
+import { Chapter, Manga, MangaPlugin } from "plugin";
+import { downloadChapter, isDownloaded } from "@core/downloader";
+import { shutdown } from "@core/main";
 
 async function searchQuery(plugin: MangaPlugin, register: boolean, argQuery?: string) {
     if (!argQuery) process.stdout.write(`(${plugin.NAME}) Enter manga title: `);

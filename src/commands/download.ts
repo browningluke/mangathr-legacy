@@ -1,9 +1,9 @@
-import { getNumber, getUserConfirmation, getUserSelection, readLineAsync } from "../helpers/cli";
-import { download, parsePlugin, printTableAndMessage, searchQuery, selectPlugin } from "../helpers/commands";
-import { MangaPlugin, Chapter, Manga } from "../types/plugin";
-import { Database } from "../types/database";
-import { delay } from "../helpers/async";
-import { CHAPTER_DELAY_TIME } from "../constants";
+import { getNumber, getUserConfirmation, getUserSelection, readLineAsync } from "@helpers/cli";
+import { download, parsePlugin, printTableAndMessage, searchQuery, selectPlugin } from "@helpers/commands";
+import { MangaPlugin, Chapter, Manga } from "plugin";
+import { Database } from "database";
+import { delay } from "@helpers/async";
+import { CHAPTER_DELAY_TIME } from "@core/constants";
 
 import { Command as Commander } from 'commander';
 

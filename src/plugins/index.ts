@@ -1,4 +1,4 @@
-import { MangaPlugin } from "../types/plugin";
+import { MangaPlugin } from "plugin";
 
 // Plugins
 import Webtoons from "./webtoons";

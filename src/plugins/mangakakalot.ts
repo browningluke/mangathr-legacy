@@ -1,6 +1,6 @@
-import { Scraper } from "../scraper";
-import { MangaPlugin, Chapter, Image, Manga, Reader, RSSManga } from "../types/plugin";
-import { pad } from "../helpers/plugins";
+import { Scraper } from "@core/scraper";
+import { MangaPlugin, Chapter, Image, Manga, Reader, RSSManga } from "plugin";
+import { pad } from "@helpers/plugins";
 
 const SEARCH_ENDPOINT = "/home_json_search";
 

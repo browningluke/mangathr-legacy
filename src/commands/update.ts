@@ -1,9 +1,9 @@
-import { Chapter } from "../types/plugin";
-import { Database, MangaUpdate } from "../types/database";
-import { getPluginFromMap } from "../plugins";
+import { Chapter } from "plugin";
+import { Database, MangaUpdate } from "database";
+import { getPluginFromMap } from "@core/plugins";
 // import { delay } from "../helpers/async";
-import { download } from "../helpers/commands";
-import { UPDATE_CHAPTER_DELAY_TIME } from "../constants";
+import { download } from "@helpers/commands";
+import { UPDATE_CHAPTER_DELAY_TIME } from "@core/constants";
 
 import { Command as Commander } from "commander";
 

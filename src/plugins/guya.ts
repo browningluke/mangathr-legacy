@@ -1,5 +1,5 @@
-import { Scraper } from "../scraper";
-import { MangaPlugin, Chapter, Reader, Manga, RSSManga } from "../types/plugin";
+import { Scraper } from "@core/scraper";
+import { MangaPlugin, Chapter, Reader, Manga, RSSManga } from "plugin";
 
 type GuyaData = { url: string, filename: string }[];
 

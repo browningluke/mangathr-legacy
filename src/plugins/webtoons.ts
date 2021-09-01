@@ -1,6 +1,6 @@
-import { Scraper } from "../scraper";
-import { MangaPlugin, Chapter, Image, Reader, Manga, RSSManga } from "../types/plugin";
-import { pad } from "../helpers/plugins";
+import { Scraper } from "@core/scraper";
+import { MangaPlugin, Chapter, Image, Reader, Manga, RSSManga } from "plugin";
+import { pad } from "@helpers/plugins";
 
 import Parser from "rss-parser";
 const parser = new Parser();

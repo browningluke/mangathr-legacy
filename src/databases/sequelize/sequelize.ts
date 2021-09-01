@@ -1,7 +1,7 @@
 import { Sequelize } from "sequelize";
 import { defineManga } from "./manga.model";
 
-import { SQLITE_STORAGE } from "../../constants";
+import { SQLITE_STORAGE } from "@core/constants";
 
 const sequelize = new Sequelize({
     dialect: 'sqlite',
