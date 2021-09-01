@@ -9,7 +9,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node bin/mangathr.js",
-    "test": "jest",
+    "test": "NODE_ENV=test jest",
     "watch": "tsc --watch --project './tsconfig.json'"
   },
   "bin": {
