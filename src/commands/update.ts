@@ -41,7 +41,7 @@ function findNewChapters(availableChapters: Chapter[],
 }
 
 const checkForNewChapters = async (manga: MangaUpdate) => {
-    console.log("\x1b[1m", `--- Checking manga: ${manga.title} [with ${manga.plugin}] ---`, "\x1b[0m");
+    console.log("\x1b[1m", `--- [${manga.plugin}] Checking: ${manga.title} ---`, "\x1b[0m");
 
     const plugin = getPluginFromMap(manga.plugin)!;
 
@@ -73,6 +73,6 @@ const checkForNewChapters = async (manga: MangaUpdate) => {
         };
     }
 
-    console.log(`Found no new chapters for manga: ${manga.title} :(`);
+    console.log(`Found no new chapters. :(`);
     return manga;
 }
