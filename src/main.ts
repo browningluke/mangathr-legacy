@@ -1,7 +1,7 @@
-import { SQLite } from "./databases/sqlite";
+import { SQLite } from "@databases/sqlite";
 
 import { handleDialog, initCommands } from "./commands";
-import { Database } from "./types/database";
+import { Database } from "database";
 
 import { Command as Commander } from 'commander';
 import { ALL_PLUGIN_NAMES } from "./plugins";

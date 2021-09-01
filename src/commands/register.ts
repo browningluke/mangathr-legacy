@@ -1,10 +1,8 @@
-import { MangaPlugin } from "../types/plugin";
-import { Database } from "../types/database";
-import { MangaAlreadyRegisteredError } from "../exceptions";
-import { parsePlugin, printTableAndMessage, searchQuery, selectPlugin } from "../helpers/commands";
-import { getUserConfirmation } from "../helpers/cli";
-import { RSSManga } from "../types/plugin";
-import { MangaUpdate } from "../types/database";
+import { MangaPlugin, RSSManga } from "plugin";
+import { Database, MangaUpdate } from "database";
+import { MangaAlreadyRegisteredError } from "@core/exceptions";
+import { parsePlugin, printTableAndMessage, searchQuery, selectPlugin } from "@helpers/commands";
+import { getUserConfirmation } from "@helpers/cli";
 
 import { Command as Commander } from "commander";
 

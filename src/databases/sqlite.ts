@@ -1,8 +1,8 @@
 import { sequelize } from "./sequelize/sequelize";
 import { MangaSchema } from "./sequelize/manga.model";
-import { Database, MangaUpdate } from "../types/database";
-import { delay } from "../helpers/async";
-import { MangaAlreadyRegisteredError } from "../exceptions";
+import { Database, MangaUpdate } from "database";
+import { delay } from "@helpers/async";
+import { MangaAlreadyRegisteredError } from "@core/exceptions";
 
 export class SQLite implements Database {
 

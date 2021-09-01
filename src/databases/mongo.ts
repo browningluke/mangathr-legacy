@@ -1,9 +1,9 @@
 import { Collection, Db, MongoClient } from "mongodb";
-import { MangaUpdate, Database } from "../types/database";
-import { MangaNotRegisteredError, MangaAlreadyRegisteredError } from "../exceptions";
-import { delay } from "../helpers/async";
+import { MangaUpdate, Database } from "database";
+import { MangaNotRegisteredError, MangaAlreadyRegisteredError } from "@core/exceptions";
+import { delay } from "@helpers/async";
 
-import { MONGO_URL, MONGO_DBNAME, MONGO_COLLNAME } from "../constants";
+import { MONGO_URL, MONGO_DBNAME, MONGO_COLLNAME } from "@core/constants";
 
 const MC = require('mongodb').MongoClient;
 

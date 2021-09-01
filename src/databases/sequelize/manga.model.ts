@@ -1,5 +1,5 @@
 import { DataTypes, Sequelize, Model, Optional } from 'sequelize';
-import { MangaUpdate } from "../../types/database";
+import { MangaUpdate } from "database";
 
 /*
     Extended Model Types

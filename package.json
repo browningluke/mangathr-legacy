@@ -5,7 +5,9 @@
   "main": "bin/mangathr.js",
   "repository": "git://github.com/browningluke/mangathr.git",
   "prepublish": "tsc",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc",
     "start": "node bin/mangathr.js",
@@ -17,6 +19,14 @@
   },
   "author": "Luke Browning - lrbrowning6@gmail.com",
   "license": "ISC",
+  "_moduleAliases": {
+    "@commands": "dist/commands",
+    "@databases": "dist/databases",
+    "@helpers": "dist/helpers",
+    "@plugins": "dist/plugins",
+    "@types": "dist/types",
+    "@core": "dist"
+  },
   "devDependencies": {
     "@types/archiver": "^5.1.0",
     "@types/cheerio": "^0.22.28",
@@ -40,6 +50,7 @@
     "cli-table3": "^0.6.0",
     "commander": "^8.1.0",
     "dotenv": "^10.0.0",
+    "module-alias": "^2.2.2",
     "mongodb": "^3.6.6",
     "node-fetch": "^2.6.1",
     "progress": "^2.0.3",
