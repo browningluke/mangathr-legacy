@@ -22,7 +22,7 @@ describe('SQLite', function () {
 
     describe('Setup', function () {
         it('should open without error', async function () {
-            await fs.promises.rm(SQLITE_STORAGE);
+            await fs.promises.rm(SQLITE_STORAGE, { force: true });
             db = new SQLite();
             await expect(db.setup()).resolves.not.toThrowError();
             await expect(db.findAll()).resolves.toEqual([]);
