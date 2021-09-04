@@ -7,6 +7,7 @@ const SEARCH_ENDPOINT = "/home_json_search";
 export default class Mangakakalot implements MangaPlugin {
     BASE_URL =  "https://mangakakalot.com";
     NAME = "Mangakakalot";
+    TEST_QUERY = "solo leveling";
 
     async _getMangaPage(query: string, update = false): Promise<{ title: string, url: string, body: string }> {
         let mangaUrl;

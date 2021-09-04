@@ -14,6 +14,7 @@ export default class Webtoons implements MangaPlugin {
 	BASE_URL = "https://www.webtoons.com";
 	static MOBILE_URL = "https://m.webtoons.com";
 	NAME = "Webtoons";
+	TEST_QUERY = "";
 	
 	async _getMangaPage(query: string): Promise<{ body: string, urlLocation: string }> {
 		const searchURL = `${SEARCH_URL}${encodeURI(query)}${SEARCH_PARAMS}`;

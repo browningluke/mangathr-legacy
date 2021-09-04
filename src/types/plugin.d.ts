@@ -2,6 +2,7 @@ declare module 'plugin' {
     export interface MangaPlugin {
         BASE_URL: string;
         NAME: string;
+        TEST_QUERY: string;
 
         getUpdateUrl(query: string): Promise<RSSManga>;
 

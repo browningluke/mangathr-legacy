@@ -30,6 +30,7 @@ export default class CatManga implements MangaPlugin {
 
 	BASE_URL = "https://catmanga.org/";
 	NAME = "Catmanga";
+	TEST_QUERY = "komi";
 	buildId: string | undefined;
 
 	private async setBuildIdFromIndex() {

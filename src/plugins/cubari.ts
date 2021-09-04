@@ -14,6 +14,7 @@ export default class Cubari implements MangaPlugin {
 	
 	BASE_URL = "https://cubari.moe";
 	NAME = "Cubari";
+	TEST_QUERY = "https://cubari.moe/read/gist/JOqMO/69/1/";
 
 	async _getMangaResp(query: string, api = false, apiType?: CubariType):
 		Promise<{ manga: any, cubariType: CubariType, mangaURL: string }> {
