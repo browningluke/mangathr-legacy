@@ -1,6 +1,8 @@
-import { SQLite } from "@databases/sqlite";
+import SQLite from "@databases/sqlite";
 import { Database, MangaUpdate } from "database";
 import { MangaAlreadyRegisteredError } from "@core/exceptions";
+import fs from "fs";
+import { SQLITE_STORAGE } from "@core/constants";
 
 describe('SQLite', function () {
 
@@ -10,10 +12,17 @@ describe('SQLite', function () {
         { chapters: [15,400,156], id: "test-id3", plugin: "GuyaReader", title: "Test Title 3" }
     ];
 
+    const testMangaUpdateListUpdated: MangaUpdate[] = [
+        { chapters: [2,3,61], id: "test-id", plugin: "MangaDex", title: "Test Title" },
+        { chapters: [2,5,11], id: "test-id2", plugin: "Cubari", title: "Test Title 2" },
+        { chapters: [16,401,157], id: "test-id3", plugin: "GuyaReader", title: "Test Title 3" }
+    ];
+
     let db: Database;
 
     describe('Setup', function () {
         it('should open without error', async function () {
+            await fs.promises.rm(SQLITE_STORAGE);
             db = new SQLite();
             await expect(db.setup()).resolves.not.toThrowError();
             await expect(db.findAll()).resolves.toEqual([]);
@@ -73,6 +82,24 @@ describe('SQLite', function () {
             for (const val of titleList) { expect(generatedList).toContainEqual(val); }
         });
 
+        it('should update MangaUpdate items correctly.', async function () {
+            const testFunc = async (mangaUpdate: MangaUpdate) => {
+                return {
+                    plugin: mangaUpdate.plugin, title: mangaUpdate.title, id: mangaUpdate.id,
+                    chapters: mangaUpdate.chapters.map(num => num + 1)
+                };
+            }
+            await expect(db.forEach(testFunc)).resolves.not.toThrowError();
+
+            const all = await db.findAll();
+            const allMangaUpdate: MangaUpdate[] = all.map((item: any): MangaUpdate => {
+                return { chapters: item.chapters, id: item.id, plugin: item.plugin, title: item.title };
+            })
+            for (const value of testMangaUpdateListUpdated) {
+                expect(allMangaUpdate).toContainEqual(value);
+            }
+        });
+
         it('should delete MangaUpdate correctly.', async function () {
             for (const value of testMangaUpdateList) {
                 let search = await db.find({id: value.id});
@@ -80,7 +107,13 @@ describe('SQLite', function () {
                 await expect(search[0].destroy()).resolves.not.toThrowError();
                 await expect(search[0].destroy()).resolves.not.toThrowError();
 
-                await expect(db.find({id: value.id})).resolves.not.toThrowError();
+                let res;
+                try {
+                    res = await db.find({id: value.id})
+                } catch (e) {
+                    fail(e);
+                }
+                expect(res).toEqual([]);
             }
         });
     });
