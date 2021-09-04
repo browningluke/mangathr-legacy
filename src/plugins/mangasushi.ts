@@ -8,7 +8,7 @@ export default class MangaSushi implements MangaPlugin {
 
     BASE_URL = "https://mangasushi.net";
     NAME = "MangaSushi";
-    TEST_QUERY = "Sukinako ga Megane wo Wasureta";
+    TEST_QUERY = ""; //"Sukinako ga Megane wo Wasureta";
 
     async _getMangaPage(query: string): Promise<{ mangaTitle: string, mangaId: string }> {
         const res = await Scraper.post(`${this.BASE_URL}${API_ENDPOINT}`, {
