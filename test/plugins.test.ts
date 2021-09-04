@@ -28,6 +28,7 @@ const compareChapterArrays = (actual: Chapter[], expected: Chapter[]) => {
     }
 }
 
+jest.setTimeout(100000);
 describe('Plugins', function () {
 
     for (const plugin of ALL_PLUGINS) {
@@ -39,11 +40,7 @@ describe('Plugins', function () {
 
             // This is a requirement for all other tests, while also a test itself.
             beforeAll(async function () {
-                try {
-                    resManga = await plugin.getManga(plugin.TEST_QUERY);
-                } catch (e) {
-                    fail(e);
-                }
+                resManga = await plugin.getManga(plugin.TEST_QUERY);
             })
 
             describe('Manga object', function () {
@@ -64,11 +61,7 @@ describe('Plugins', function () {
                 beforeAll(async function () {
                     const randomElement = resManga.chapters[Math.floor(Math.random() * resManga.chapters.length)];
 
-                    try {
-                        resReader = await plugin.selectChapter(randomElement);
-                    } catch (e) {
-                        fail(e);
-                    }
+                    resReader = await plugin.selectChapter(randomElement);
                 })
 
                 it('should contain a defined & non null chapter title.',
@@ -92,11 +85,7 @@ describe('Plugins', function () {
 
                 // This is a requirement for all RSSManga tests, while also a test itself.
                 beforeAll(async function () {
-                    try {
-                        resRSSManga = await plugin.getUpdateUrl(plugin.TEST_QUERY);
-                    } catch (e) {
-                        fail(e);
-                    }
+                    resRSSManga = await plugin.getUpdateUrl(plugin.TEST_QUERY);
                 })
 
                 it('should contain > 0 chapters',
@@ -124,11 +113,7 @@ describe('Plugins', function () {
 
                 // This is a requirement for all following tests, while also a test itself.
                 beforeAll(async function () {
-                    try {
-                        chapters = await plugin.getChaptersById(resRSSManga.id);
-                    } catch (e) {
-                        fail(e);
-                    }
+                    chapters = await plugin.getChaptersById(resRSSManga.id);
                 })
 
                 it('should contain > 0 chapters',
