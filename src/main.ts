@@ -1,4 +1,4 @@
-import { SQLite } from "@databases/sqlite";
+import Sqlite from "@databases/sqlite";
 
 import { handleDialog, initCommands } from "./commands";
 import { Database } from "database";
@@ -7,7 +7,7 @@ import { Command as Commander } from 'commander';
 import { ALL_PLUGIN_NAMES } from "./plugins";
 const program = new Commander();
 
-const db = new SQLite();
+const db = new Sqlite();
 
 export async function run() {
 	try {
