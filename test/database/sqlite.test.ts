@@ -3,6 +3,7 @@ import { Database, MangaUpdate } from "database";
 import { MangaAlreadyRegisteredError } from "@core/exceptions";
 import fs from "fs";
 import { SQLITE_STORAGE } from "@core/constants";
+import MockResult = jest.MockResult;
 
 describe('SQLite', function () {
 
@@ -19,6 +20,22 @@ describe('SQLite', function () {
     ];
 
     let db: Database;
+
+    async function getMUCallsAndResultsFromFn(fn: jest.Mock) {
+        await expect(db.forEach(fn)).resolves.not.toThrowError();
+        expect(fn.mock.calls.length).toBe(testMangaUpdateList.length);
+
+        const calls = fn.mock.calls.map(([mu]: MangaUpdate[]) => {
+            return { chapters: mu.chapters, id: mu.id, plugin: mu.plugin, title: mu.title }
+        });
+
+        let results: MangaUpdate[] = [];
+        for await (const v of fn.mock.results.map((res: MockResult<MangaUpdate>) => res.value)) {
+            results.push({ chapters: v.chapters, id: v.id, plugin: v.plugin, title: v.title });
+        }
+
+        return { calls, results };
+    }
 
     describe('Setup', function () {
         it('should open without error', async function () {
@@ -70,34 +87,29 @@ describe('SQLite', function () {
         });
 
         it('should run function on all MangaUpdate.', async function () {
-            let titleList = testMangaUpdateList.map(value => value.title);
-            let generatedList: string[] = [];
+            const fn = jest.fn(async (mangaUpdate: MangaUpdate) => { return mangaUpdate });
+            const { calls, results } = await getMUCallsAndResultsFromFn(fn);
 
-            const testFunc = async (mangaUpdate: MangaUpdate) => {
-                generatedList.push(mangaUpdate.title);
-                return mangaUpdate;
+            for (const val of testMangaUpdateList) {
+                expect(calls).toContainEqual(val);
+                expect(results).toContainEqual(val);
             }
-            await expect(db.forEach(testFunc)).resolves.not.toThrowError();
-
-            for (const val of titleList) { expect(generatedList).toContainEqual(val); }
         });
 
         it('should update MangaUpdate items correctly.', async function () {
-            const testFunc = async (mangaUpdate: MangaUpdate) => {
-                return {
-                    plugin: mangaUpdate.plugin, title: mangaUpdate.title, id: mangaUpdate.id,
-                    chapters: mangaUpdate.chapters.map(num => num + 1)
-                };
-            }
-            await expect(db.forEach(testFunc)).resolves.not.toThrowError();
+            const fn = jest.fn(async (mu: MangaUpdate) => {
+                return { plugin: mu.plugin, title: mu.title, id: mu.id, chapters: mu.chapters.map(n => n + 1) }
+            })
+            const { calls, results } = await getMUCallsAndResultsFromFn(fn);
+
+            for (const val of testMangaUpdateList) { expect(calls).toContainEqual(val); }
+            for (const val of testMangaUpdateListUpdated) { expect(results).toContainEqual(val); }
 
             const all = await db.findAll();
             const allMangaUpdate: MangaUpdate[] = all.map((item: any): MangaUpdate => {
                 return { chapters: item.chapters, id: item.id, plugin: item.plugin, title: item.title };
             })
-            for (const value of testMangaUpdateListUpdated) {
-                expect(allMangaUpdate).toContainEqual(value);
-            }
+            for (const value of testMangaUpdateListUpdated) { expect(allMangaUpdate).toContainEqual(value); }
         });
 
         it('should delete MangaUpdate correctly.', async function () {
