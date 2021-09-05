@@ -6,6 +6,7 @@ type GuyaData = { url: string, filename: string }[];
 export default class Guya implements MangaPlugin {
     BASE_URL = "";
     NAME = "GuyaReader";
+    TEST_QUERY = "https://guya.moe/read/manga/Oshi-no-Ko/";
 
     private async getMangaAndId(query: string, api = false) {
         let regex = api ? /(\w+\.\w+)\/api\/series\/(.*?)(\/|$)/ : /(\w+\.\w+)\/read\/manga\/(.*?)(\/|$)/;
