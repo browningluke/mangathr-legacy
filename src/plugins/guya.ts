@@ -1,5 +1,5 @@
 import { Scraper } from "@core/scraper";
-import { MangaPlugin, Chapter, Reader, Manga, RSSManga } from "plugin";
+import { MangaPlugin, Chapter, Reader, Manga, IDManga } from "plugin";
 
 type GuyaData = { url: string, filename: string }[];
 
@@ -76,14 +76,13 @@ export default class Guya implements MangaPlugin {
         return (await this.getMangaAndId(id, true)).manga.chapters;
     }
 
-    async getUpdateUrl(query: string): Promise<RSSManga> {
+    async getUpdateUrl(query: string): Promise<IDManga> {
         let { manga, id } = await this.getMangaAndId(query);
 
         return {
             title: manga.title,
             chapters: manga.chapters,
             id: id,
-            rss: false
         }
     }
 

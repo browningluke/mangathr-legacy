@@ -13,7 +13,6 @@ declare module 'database' {
         plugin: string; // Loose type check (should always be one of ALL_PLUGIN_NAMES)
         title: string;
         id: string;
-        //rss: boolean;
         chapters: number[]; // List of numbers (lower case)
     }
 }

@@ -3,7 +3,7 @@ declare module 'plugin' {
         BASE_URL: string;
         NAME: string;
 
-        getUpdateUrl(query: string): Promise<RSSManga>;
+        getUpdateUrl(query: string): Promise<IDManga>;
 
         getManga(query: string): Promise<Manga>;
 
@@ -17,9 +17,8 @@ declare module 'plugin' {
         chapters: Chapter[]
     }
 
-    export interface RSSManga extends Manga {
-        id: string,
-        rss: boolean
+    export interface IDManga extends Manga {
+        id: string
     }
 
     export interface Chapter {

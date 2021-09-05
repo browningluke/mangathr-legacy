@@ -1,5 +1,5 @@
 import { Scraper } from "@core/scraper";
-import { MangaPlugin, Chapter, Image, Reader, Manga, RSSManga } from "plugin";
+import { MangaPlugin, Chapter, Image, Reader, Manga, IDManga } from "plugin";
 import { pad } from "@helpers/plugins";
 
 interface APIManga {
@@ -103,13 +103,12 @@ export default class CatManga implements MangaPlugin {
 		return chapters;
 	}
 
-	async getUpdateUrl(query: string): Promise<RSSManga> {
+	async getUpdateUrl(query: string): Promise<IDManga> {
 		const manga = await this._getApiManga(query);
 		if (!manga) throw "Could not find manga.";
 
 		return {
 			id: manga.series_id, // can be id or url
-			rss: false,
 			title: manga.title,
 			chapters: this._getChapters(manga).reverse()
 		}

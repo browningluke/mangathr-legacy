@@ -1,5 +1,5 @@
 import { Scraper } from "@core/scraper";
-import { MangaPlugin, Chapter, Image, Reader, Manga, RSSManga } from "plugin";
+import { MangaPlugin, Chapter, Image, Reader, Manga, IDManga } from "plugin";
 import { pad } from "@helpers/plugins";
 
 const SEARCH_URL = "https://ac.webtoons.com/ac?q=en%5E";
@@ -71,7 +71,7 @@ export default class Webtoons implements MangaPlugin {
 		return chapters;
 	}
 
-	async getUpdateUrl(query: string): Promise<RSSManga> {
+	async getUpdateUrl(query: string): Promise<IDManga> {
 		const { body, urlLocation } = await this._getMangaPage(query);
 		const chapterTitleNode = Scraper.css(body, 'meta[property="og:title"]');
 		const chapterTitle = chapterTitleNode.attr("content")!;
@@ -79,7 +79,6 @@ export default class Webtoons implements MangaPlugin {
 		return {
 			title: chapterTitle,
 			chapters: this._getChapters(body),
-			rss: false,
 			id: urlLocation
 		}
 	}
