@@ -10,7 +10,7 @@ export default class Webtoons implements MangaPlugin {
 	
 	BASE_URL = "https://m.webtoons.com";
 	NAME = "Webtoons";
-	TEST_QUERY = "";
+	TEST_QUERY = "mage &";
 	
 	private async _getMangaPage(query: string, url?: boolean): Promise<{ body: string, urlLocation: string }> {
 		let urlLocation = query;

@@ -1,5 +1,5 @@
 import { ALL_PLUGIN_NAMES, getPluginFromMap } from "@core/plugins";
-import {Chapter, Manga, Reader, RSSManga} from "plugin";
+import { Chapter, Manga, Reader, IDManga } from "plugin";
 
 const ALL_PLUGINS = ALL_PLUGIN_NAMES.map((name) => getPluginFromMap(name)!);
 
@@ -36,7 +36,7 @@ describe('Plugins', function () {
 
         describe(`${plugin.NAME}`, function () {
             let resManga: Manga;
-            let resRSSManga: RSSManga;
+            let resRSSManga: IDManga;
 
             // This is a requirement for all other tests, while also a test itself.
             beforeAll(async function () {
