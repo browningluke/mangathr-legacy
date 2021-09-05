@@ -1,5 +1,5 @@
 import { Scraper } from "@core/scraper";
-import { MangaPlugin, Chapter, Image, Manga, Reader, RSSManga } from "plugin";
+import { MangaPlugin, Chapter, Image, Manga, Reader, IDManga } from "plugin";
 import { pad } from "@helpers/plugins";
 
 const API_ENDPOINT = "/wp-admin/admin-ajax.php";
@@ -119,13 +119,12 @@ export default class MangaSushi implements MangaPlugin {
         }
     }
 
-    async getUpdateUrl(query: string): Promise<RSSManga> {
+    async getUpdateUrl(query: string): Promise<IDManga> {
         let { mangaTitle, mangaId } = await this._getMangaPage(query);
         let chapters = await this._getChapters(mangaId);
 
         return {
             title: mangaTitle,
-            rss: false,
             chapters: chapters,
             id: mangaId
         }

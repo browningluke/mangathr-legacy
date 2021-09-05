@@ -1,5 +1,5 @@
 import { Scraper } from "@core/scraper";
-import { MangaPlugin, Chapter, Image, Reader, Manga, RSSManga } from "plugin";
+import { MangaPlugin, Chapter, Image, Reader, Manga, IDManga } from "plugin";
 import { pad } from "@helpers/plugins";
 
 interface MDData {
@@ -272,12 +272,11 @@ export default class MangaDex implements MangaPlugin {
         };
     }
 
-    async getUpdateUrl(query: string): Promise<RSSManga> {
+    async getUpdateUrl(query: string): Promise<IDManga> {
         let { title, chapters, id } = await this.getMangaAndID(query);
 
         return {
             id: id,
-            rss: false,
             title: title,
             chapters: chapters
         };

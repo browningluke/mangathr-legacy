@@ -1,5 +1,5 @@
 import { Scraper } from "@core/scraper";
-import { MangaPlugin, Chapter, Image, Manga, Reader, RSSManga } from "plugin";
+import { MangaPlugin, Chapter, Image, Manga, Reader, IDManga } from "plugin";
 import { pad } from "@helpers/plugins";
 
 const SEARCH_ENDPOINT = "/home_json_search";
@@ -119,13 +119,12 @@ export default class Mangakakalot implements MangaPlugin {
         return this._getChapters(body);
     }
 
-    async getUpdateUrl(query: string): Promise<RSSManga> {
+    async getUpdateUrl(query: string): Promise<IDManga> {
         const { title, url, body } = await this._getMangaPage(query);
         const chapters = this._getChapters(body);
 
         return {
             id: url,
-            rss: false,
             title: title,
             chapters: chapters
         }
