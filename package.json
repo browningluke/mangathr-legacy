@@ -1,6 +1,6 @@
 {
   "name": "mangathr",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A terminal client for downloading manga, with support for sites like MangaDex, Cubari and more.",
   "main": "bin/mangathr.js",
   "repository": "git://github.com/browningluke/mangathr.git",
