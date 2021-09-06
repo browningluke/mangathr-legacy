@@ -1,10 +1,8 @@
-import { MangaPlugin } from "../types/plugin";
-import { Database } from "../types/database";
-import { MangaAlreadyRegisteredError } from "../exceptions";
-import { parsePlugin, printTableAndMessage, searchQuery, selectPlugin } from "../helpers/commands";
-import { getUserConfirmation } from "../helpers/cli";
-import { RSSManga } from "../types/plugin";
-import { MangaUpdate } from "../types/database";
+import { MangaPlugin, IDManga } from "plugin";
+import { Database, MangaUpdate } from "database";
+import { MangaAlreadyRegisteredError } from "@core/exceptions";
+import { parsePlugin, printTableAndMessage, searchQuery, selectPlugin } from "@helpers/commands";
+import { getUserConfirmation } from "@helpers/cli";
 
 import { Command as Commander } from "commander";
 
@@ -15,7 +13,7 @@ export function initRegisterCommand(program: Commander, db: Database) {
 
 		if (!options.y) {
 			await printTableAndMessage(manga.chapters, manga.title, manga.chapters.length);
-			console.log((manga as RSSManga).id);
+			console.log((manga as IDManga).id);
 		}
 
 		await registerManga(db, manga, parsedPlugin, options.y);
@@ -33,17 +31,17 @@ export async function handleRegisterDialog(db: Database) {
 	let manga = await getManga(plugin);
 
 	await printTableAndMessage(manga.chapters, manga.title, manga.chapters.length);
-	console.log((manga as RSSManga).id);
+	console.log((manga as IDManga).id);
 
 	await registerManga(db, manga, plugin);
 }
 
-async function getManga(plugin: MangaPlugin, query?: string): Promise<RSSManga> {
+async function getManga(plugin: MangaPlugin, query?: string): Promise<IDManga> {
 	let	mangaUnion = await searchQuery(plugin, true, query);
-	return mangaUnion as RSSManga;
+	return mangaUnion as IDManga;
 }
 
-async function registerManga(db: Database, manga: RSSManga, plugin: MangaPlugin, skipConfirmation = false) {
+async function registerManga(db: Database, manga: IDManga, plugin: MangaPlugin, skipConfirmation = false) {
 	console.log(`Registering: ${manga.title}`);
 
 	if (!skipConfirmation && await getUserConfirmation(

@@ -1,11 +1,11 @@
-import { Chapter } from "../types/plugin";
-import { isDownloaded } from "../downloader";
-import { shutdown } from "../main";
+import { Chapter } from "plugin";
+import { isDownloaded } from "@core/downloader";
+import { shutdown } from "@core/main";
 
 import readline from 'readline';
 import Table from 'cli-table3';
 import cliSelect from 'cli-select';
-import { TABLE_COL_WIDTHS } from "../constants";
+import { TABLE_COL_WIDTHS } from "@core/constants";
 
 const readLineAsync = (): Promise<string> => {
     const rl = readline.createInterface({

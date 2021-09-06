@@ -1,6 +1,6 @@
-import { Scraper } from "../scraper";
-import { MangaPlugin, Chapter, Image, Reader, Manga, RSSManga } from "../types/plugin";
-import { pad } from "../helpers/plugins";
+import { Scraper } from "@core/scraper";
+import { MangaPlugin, Chapter, Image, Reader, Manga, IDManga } from "plugin";
+import { pad } from "@helpers/plugins";
 
 const API_URL = "https://cubari.moe/read/api/"
 
@@ -14,6 +14,7 @@ export default class Cubari implements MangaPlugin {
 	
 	BASE_URL = "https://cubari.moe";
 	NAME = "Cubari";
+	TEST_QUERY = "https://cubari.moe/read/gist/JOqMO/69/1/";
 
 	async _getMangaResp(query: string, api = false, apiType?: CubariType):
 		Promise<{ manga: any, cubariType: CubariType, mangaURL: string }> {
@@ -124,7 +125,7 @@ export default class Cubari implements MangaPlugin {
 		return { chapters, mangaTitle };
 	}
 
-	async getUpdateUrl(query: string): Promise<RSSManga> {
+	async getUpdateUrl(query: string): Promise<IDManga> {
 		let { manga, cubariType, mangaURL } = await this._getMangaResp(query);
 
 		if (cubariType == CubariType.IMGUR) throw new Error("Registering not supported for Imgur chapters.");
@@ -138,7 +139,6 @@ export default class Cubari implements MangaPlugin {
 		return {
 			title: mangaTitle,
 			chapters: chapters.reverse(),
-			rss: false,
 			id: id
 		}
 	}

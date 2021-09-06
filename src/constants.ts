@@ -3,7 +3,9 @@ import os from 'os';
 export const PROJECT_NAME = "mangathr"
 
 export const DOWNLOAD_DIR = `${process.cwd()}/mangathr`//
-export const SQLITE_STORAGE = `${os.homedir()}/.${PROJECT_NAME}/database.sqlite`;
+
+export const SQLITE_STORAGE = process.env.NODE_ENV == "test" ?
+    `${os.homedir()}/.${PROJECT_NAME}/database.test.sqlite` : `${os.homedir()}/.${PROJECT_NAME}/database.sqlite`;
 
 export const TABLE_COL_WIDTHS = [9, 9, 50, 13];
 

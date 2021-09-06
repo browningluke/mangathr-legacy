@@ -2,10 +2,10 @@ import { handleManageDialog, initManageCommand } from "./manage";
 import { handleDownloadDialog, initDownloadCommand } from "./download";
 import { handleRegisterDialog, initRegisterCommand } from "./register";
 import { handleUpdateDialog, initUpdateCommand } from "./update";
-import { Database } from "../types/database";
+import { Database } from "database";
 
 import { Command as Commander } from 'commander';
-import { getUserSelection } from "../helpers/cli";
+import { getUserSelection } from "@helpers/cli";
 
 const initFunctions = [initManageCommand, initDownloadCommand, initRegisterCommand, initUpdateCommand];
 

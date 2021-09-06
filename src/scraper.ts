@@ -9,19 +9,22 @@ interface GetObject {
 
 class Scraper {
 
-	static async get(urlString: string, params?: any, escape = true): Promise<GetObject> {
-		let urlParams: URLSearchParams | string = "?";
+	static async get(urlString: string, params?: any, escape = true, opts?: any): Promise<GetObject> {
+		let urlParams: URLSearchParams | string = "";
 
-		if (escape) {
-			urlParams = new URLSearchParams(params);
-		} else if (params) {
-			for (const [key, value] of Object.entries(params)) {
-				const knownVal = value as string | number | boolean;
-				urlParams += `${key}=${value}&`
+		if (params) {
+			urlParams += "?";
+			if (escape) {
+				urlParams += new URLSearchParams(params);
+			} else {
+				for (const [key, value] of Object.entries(params)) {
+					const knownVal = value as string | number | boolean;
+					urlParams += `${key}=${knownVal}&`
+				}
 			}
 		}
 
-		const res: Response = await fetch(urlString + urlParams);
+		const res: Response = await fetch(urlString + urlParams, opts);
 		const data = await res.text();
 
 		return {
@@ -34,9 +37,11 @@ class Scraper {
 	static async post(url: string, body?: any, options?: any): Promise<GetObject> {
 		const searchParams = new URLSearchParams();
 
-		for (const [key, value] of Object.entries(body)) {
-			const knownVal = value as string | number | boolean;
-			searchParams.append(key, knownVal.toString());
+		if (body) {
+			for (const [key, value] of Object.entries(body)) {
+				const knownVal = value as string | number | boolean;
+				searchParams.append(key, knownVal.toString());
+			}
 		}
 
 		const res: Response = await fetch(url, options ?? {

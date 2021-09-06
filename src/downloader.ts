@@ -1,6 +1,6 @@
-import { Image, Reader } from "./types/plugin";
-import { retryFetch } from "./helpers/retry-fetch";
-import { delay } from "./helpers/async";
+import { Image, Reader } from "plugin";
+import { retryFetch } from "@helpers/retry-fetch";
+import { delay } from "@helpers/async";
 
 import archiver from 'archiver';
 import fs from 'fs';

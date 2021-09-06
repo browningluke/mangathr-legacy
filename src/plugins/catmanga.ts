@@ -1,6 +1,6 @@
-import { Scraper } from "../scraper";
-import { MangaPlugin, Chapter, Image, Reader, Manga, RSSManga } from "../types/plugin";
-import { pad } from "../helpers/plugins";
+import { Scraper } from "@core/scraper";
+import { MangaPlugin, Chapter, Image, Reader, Manga, IDManga } from "plugin";
+import { pad } from "@helpers/plugins";
 
 interface APIManga {
 	alt_titles: string[],
@@ -30,6 +30,7 @@ export default class CatManga implements MangaPlugin {
 
 	BASE_URL = "https://catmanga.org/";
 	NAME = "Catmanga";
+	TEST_QUERY = "komi";
 	buildId: string | undefined;
 
 	private async setBuildIdFromIndex() {
@@ -103,13 +104,12 @@ export default class CatManga implements MangaPlugin {
 		return chapters;
 	}
 
-	async getUpdateUrl(query: string): Promise<RSSManga> {
+	async getUpdateUrl(query: string): Promise<IDManga> {
 		const manga = await this._getApiManga(query);
 		if (!manga) throw "Could not find manga.";
 
 		return {
 			id: manga.series_id, // can be id or url
-			rss: false,
 			title: manga.title,
 			chapters: this._getChapters(manga).reverse()
 		}

@@ -33,6 +33,7 @@ Ensure you have `npm` and `node` installed and run the following comands:
 
     $ mangathr [SUBCOMMAND] [OPTIONS]
 
+When downloading chapters (download or update), chapters will be downloaded into subfolder in current working directory.
 
 
 ### Subcommands

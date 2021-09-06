@@ -1,11 +1,12 @@
-import { Scraper } from "../scraper";
-import { MangaPlugin, Chapter, Reader, Manga, RSSManga } from "../types/plugin";
+import { Scraper } from "@core/scraper";
+import { MangaPlugin, Chapter, Reader, Manga, IDManga } from "plugin";
 
 type GuyaData = { url: string, filename: string }[];
 
 export default class Guya implements MangaPlugin {
     BASE_URL = "";
     NAME = "GuyaReader";
+    TEST_QUERY = "https://guya.moe/read/manga/Oshi-no-Ko/";
 
     private async getMangaAndId(query: string, api = false) {
         let regex = api ? /(\w+\.\w+)\/api\/series\/(.*?)(\/|$)/ : /(\w+\.\w+)\/read\/manga\/(.*?)(\/|$)/;
@@ -76,14 +77,13 @@ export default class Guya implements MangaPlugin {
         return (await this.getMangaAndId(id, true)).manga.chapters;
     }
 
-    async getUpdateUrl(query: string): Promise<RSSManga> {
+    async getUpdateUrl(query: string): Promise<IDManga> {
         let { manga, id } = await this.getMangaAndId(query);
 
         return {
             title: manga.title,
             chapters: manga.chapters,
             id: id,
-            rss: false
         }
     }
 

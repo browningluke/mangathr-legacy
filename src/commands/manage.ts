@@ -1,7 +1,7 @@
-import { shutdown } from "../main";
-import {getUserConfirmation, getUserSelection, readLineAsync} from "../helpers/cli";
+import { shutdown } from "@core/main";
+import { getUserConfirmation, getUserSelection, readLineAsync } from "@helpers/cli";
 
-import { Database, MangaUpdate } from "../types/database";
+import { Database, MangaUpdate } from "database";
 
 import { Command as Commander } from "commander";
 import Table from "cli-table3";

@@ -1,6 +1,6 @@
-import { Scraper } from "../scraper";
-import { MangaPlugin, Chapter, Image, Reader, Manga, RSSManga } from "../types/plugin";
-import { pad } from "../helpers/plugins";
+import { Scraper } from "@core/scraper";
+import { MangaPlugin, Chapter, Image, Reader, Manga, IDManga } from "plugin";
+import { pad } from "@helpers/plugins";
 
 interface MDData {
     hash: string;
@@ -22,6 +22,7 @@ export default class MangaDex implements MangaPlugin {
 
     BASE_URL = "https://api.mangadex.org";
     NAME = "MangaDex";
+    TEST_QUERY = "https://mangadex.org/title/f9c33607-9180-4ba6-b85c-e4b5faee7192";
 
     private static parseURL(query: string): { id: string, type: URLType } | null {
         // Attempt to match chapter/title URL
@@ -271,12 +272,11 @@ export default class MangaDex implements MangaPlugin {
         };
     }
 
-    async getUpdateUrl(query: string): Promise<RSSManga> {
+    async getUpdateUrl(query: string): Promise<IDManga> {
         let { title, chapters, id } = await this.getMangaAndID(query);
 
         return {
             id: id,
-            rss: false,
             title: title,
             chapters: chapters
         };
