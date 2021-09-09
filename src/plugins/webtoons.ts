@@ -1,5 +1,5 @@
-import { Scraper } from "@core/scraper";
-import { MangaPlugin, Chapter, Image, Reader, Manga, IDManga } from "plugin";
+import { GenericObject, RespBodyType, Scraper } from "@core/scraper";
+import { Chapter, IDManga, Image, Manga, MangaPlugin, Reader } from "plugin";
 import { pad } from "@helpers/plugins";
 
 const SEARCH_URL = "https://ac.webtoons.com/ac?q=en%5E";
@@ -20,8 +20,8 @@ export default class Webtoons implements MangaPlugin {
 
 			let searchJson: any;
 			try {
-				const searchResp = await Scraper.get(searchURL);
-				searchJson = JSON.parse(searchResp.body);
+				const searchResp = await Scraper.get(searchURL, RespBodyType.JSON);
+				searchJson = searchResp.data as GenericObject;
 			} catch (error) {
 				throw new Error("Failed to get chapter with that title.");
 			}
@@ -40,11 +40,10 @@ export default class Webtoons implements MangaPlugin {
 			urlLocation = this.BASE_URL + LIST_ENDPOINT + mangaID;
 		}
 
-		const resp = await Scraper.get(urlLocation,
-			undefined, true,
-			{ headers: { cookie: "pagGDPR=true", referer: this.BASE_URL } });
+		const resp = await Scraper.get(urlLocation, RespBodyType.TEXT,
+			{ opts: { headers: { cookie: "pagGDPR=true", referer: this.BASE_URL } }});
 
-		return { body: resp.body, urlLocation: urlLocation };
+		return { body: resp.data as string, urlLocation: urlLocation };
 	}
 
 	private _getChapters(body: string): Chapter[] {
@@ -101,11 +100,12 @@ export default class Webtoons implements MangaPlugin {
 	}
 
 	async selectChapter(chapter: Chapter): Promise<Reader> {
-		const resp = await Scraper.get(chapter.url!, undefined, true,
-			{ headers: { cookie: "pagGDPR=true" } });
+		const resp = await Scraper.get(chapter.url!, RespBodyType.TEXT,
+			{ opts: { headers: { cookie: "pagGDPR=true" } }
+		});
 
 		//var titleNode = mango.css(resp.body, ".subj_info .subj_episode").text();
-		const imgList = Scraper.css(resp.body, "#_imageList img");
+		const imgList = Scraper.css(resp.data as string, "#_imageList img");
 
 		let imgURLs: Image[] = [];
 		const digits = Math.floor(Math.log10(imgList.length)) + 1;

@@ -1,5 +1,5 @@
-import { Scraper } from "@core/scraper";
-import { MangaPlugin, Chapter, Image, Manga, Reader, IDManga } from "plugin";
+import { GenericObject, RespBodyType, Scraper } from "@core/scraper";
+import { Chapter, IDManga, Image, Manga, MangaPlugin, Reader } from "plugin";
 import { pad } from "@helpers/plugins";
 
 const API_ENDPOINT = "/wp-admin/admin-ajax.php";
@@ -8,19 +8,17 @@ export default class MangaSushi implements MangaPlugin {
 
     BASE_URL = "https://mangasushi.net";
     NAME = "MangaSushi";
-    TEST_QUERY = ""; //"Sukinako ga Megane wo Wasureta";
+    TEST_QUERY = "Sukinako ga Megane wo Wasureta";
 
     async _getMangaPage(query: string): Promise<{ mangaTitle: string, mangaId: string }> {
-        const res = await Scraper.post(`${this.BASE_URL}${API_ENDPOINT}`, {
-            action: "wp-manga-search-manga",
-            title: query
-        });
-
-        if (!res.body) {
+        let searchJson: GenericObject;
+        try {
+            const res = await Scraper.post(`${this.BASE_URL}${API_ENDPOINT}`, RespBodyType.JSON,
+                { body: { action: "wp-manga-search-manga", title: query } });
+            searchJson = res.data as GenericObject;
+        } catch (e) {
             throw new Error("An error occurred while searching");
         }
-
-        let searchJson = JSON.parse(res.body);
 
         if (!searchJson.success) {
             if (searchJson.data[0]?.error) {
@@ -32,10 +30,10 @@ export default class MangaSushi implements MangaPlugin {
         let mangaTitle = searchJson.data[0].title;
         let mangaUrl = searchJson.data[0].url;
 
-        const mangaRes = await Scraper.get(mangaUrl);
+        const mangaRes = await Scraper.get(mangaUrl, RespBodyType.TEXT);
 
-        if (!mangaRes.body) throw new Error("Failed to get manga page");
-        let shortLink = Scraper.css(mangaRes.body, "link[rel=\"canonical\"]")
+        if (!mangaRes.data) throw new Error("Failed to get manga page");
+        let shortLink = Scraper.css(mangaRes.data as string, "link[rel=\"canonical\"]")
             .attr("href")!;
 
         let regexRes = /mangasushi\.net\/manga\/(.*?)\//.exec(shortLink);
@@ -48,10 +46,10 @@ export default class MangaSushi implements MangaPlugin {
     }
 
     async _getChapters(mangaId: string): Promise<Chapter[]> {
-        const chapterRes = await Scraper.post(`${this.BASE_URL}/manga/${mangaId}/ajax/chapters`);
+        const chapterRes = await Scraper.post(`${this.BASE_URL}/manga/${mangaId}/ajax/chapters`, RespBodyType.TEXT);
 
-        if (!chapterRes.body || chapterRes.body == "0") throw new Error("Failed to get chapter page");
-        let liChapters = Scraper.css(chapterRes.body, "ul li.wp-manga-chapter");
+        if (!chapterRes.data || chapterRes.data == "0") throw new Error("Failed to get chapter page");
+        let liChapters = Scraper.css(chapterRes.data as string, "ul li.wp-manga-chapter");
 
         let chapters: Chapter[] = [];
         liChapters.each((_: number, element: cheerio.Element) => {
@@ -91,11 +89,11 @@ export default class MangaSushi implements MangaPlugin {
     }
 
     async selectChapter(chapter: Chapter): Promise<Reader> {
-        let res = await Scraper.get(chapter.url!);
+        let res = await Scraper.get(chapter.url!, RespBodyType.TEXT);
 
-        if (!res.body) throw new Error("An error occurred while getting chapter page");
+        if (!res.data) throw new Error("An error occurred while getting chapter page");
 
-        let imgList = Scraper.css(res.body!, "img[id*=\"image-\"]");
+        let imgList = Scraper.css(res.data as string, "img[id*=\"image-\"]");
         //console.log(imgList);
 
         let imgURLs: Image[] = [];

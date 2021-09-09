@@ -1,5 +1,5 @@
-import { Scraper } from "@core/scraper";
-import { MangaPlugin, Chapter, Image, Reader, Manga, IDManga } from "plugin";
+import { GenericObject, RespBodyType, Scraper } from "@core/scraper";
+import { Chapter, IDManga, Image, Manga, MangaPlugin, Reader } from "plugin";
 import { pad } from "@helpers/plugins";
 
 const API_URL = "https://cubari.moe/read/api/"
@@ -46,15 +46,13 @@ export default class Cubari implements MangaPlugin {
 			mangaURL = `${API_URL}${apiType}/series/${query}/`;
 		}
 
-		let mangaJSONResp = await Scraper.get(mangaURL);
-		if (mangaJSONResp.status_code != 200) throw Error("Failed to get manga information.");
-		let mangaJSONString = mangaJSONResp.body;
-
-		if (!mangaJSONString) {
-			throw new Error("Failed to get JSON data.");
+		let manga: GenericObject;
+		try {
+			let resp = await Scraper.get(mangaURL, RespBodyType.JSON);
+			manga = resp.data as GenericObject;
+		} catch (e) {
+			throw Error("Failed to get manga information JSON.");
 		}
-
-		let manga = JSON.parse(mangaJSONString);
 
 		if (!manga) {
 			throw new Error("Failed to get manga");
@@ -163,11 +161,11 @@ export default class Cubari implements MangaPlugin {
 	}
 
 	async selectChapter(chapter: Chapter): Promise<Reader> {
-		const resp = await Scraper.get(chapter.url!);
+		const resp = await Scraper.get(chapter.url!, RespBodyType.JSON);
 		const rawCubariType = chapter.id!;
 		const cubariType = rawCubariType as CubariType;
 
-		const body = JSON.parse(resp.body);
+		const body = resp.data as GenericObject;
 
 		const pages = cubariType == CubariType.IMGUR ? body.chapters[1].groups[1] : body;
 

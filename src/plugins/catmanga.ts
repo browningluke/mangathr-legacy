@@ -1,5 +1,5 @@
-import { Scraper } from "@core/scraper";
-import { MangaPlugin, Chapter, Image, Reader, Manga, IDManga } from "plugin";
+import { GenericObject, RespBodyType, Scraper } from "@core/scraper";
+import { Chapter, IDManga, Image, Manga, MangaPlugin, Reader}  from "plugin";
 import { pad } from "@helpers/plugins";
 
 interface APIManga {
@@ -34,8 +34,8 @@ export default class CatManga implements MangaPlugin {
 	buildId: string | undefined;
 
 	private async setBuildIdFromIndex() {
-		const resp = await Scraper.get(this.BASE_URL);
-		const indexHTML = resp.body;
+		const resp = await Scraper.get(this.BASE_URL, RespBodyType.TEXT);
+		const indexHTML = resp.data as string;
 
 		if (!indexHTML) {
 			throw Error("Failed to get index.html");
@@ -48,7 +48,9 @@ export default class CatManga implements MangaPlugin {
 	}
 
 	private async getBuildIdFromChapter(mangaID: string, chapterNum: number) {
-		const chapterHTML = (await Scraper.get(`${this.BASE_URL}series/${mangaID}/${chapterNum}`)).body;
+		const resp = await Scraper.get(`${this.BASE_URL}series/${mangaID}/${chapterNum}`,
+			RespBodyType.TEXT);
+		const chapterHTML = resp.data as string;
 
 		if (!chapterHTML) throw Error("Could not get chapter HTML.");
 
@@ -61,11 +63,11 @@ export default class CatManga implements MangaPlugin {
 
 		if (!this.buildId) await this.setBuildIdFromIndex();
 
-		const indexJSONString = (await Scraper.get(`${this.BASE_URL}_next/data/${this.buildId}/index.json`)).body;
-
-		let indexJSON;
+		let indexJSON: GenericObject;
 		try {
-			indexJSON = JSON.parse(indexJSONString);
+			const resp = await Scraper.get(`${this.BASE_URL}_next/data/${this.buildId}/index.json`,
+				RespBodyType.JSON);
+			indexJSON = resp.data as GenericObject;
 		} catch (e) {
 			throw Error("Failed to get index information.");
 		}
@@ -135,11 +137,11 @@ export default class CatManga implements MangaPlugin {
 
 		const getMangaJSON = async (buildId: string) => {
 			const mangaURL = `${this.BASE_URL}_next/data/${buildId}/series/${mangaID}/${chapterNum}.json`;
-			const mangaJsonString = (await Scraper.get(mangaURL)).body;
 
-			let mangaJSON;
+			let mangaJSON: GenericObject;
 			try {
-				mangaJSON = JSON.parse(mangaJsonString);
+				const resp = await Scraper.get(mangaURL, RespBodyType.JSON);
+				mangaJSON = resp.data as GenericObject;
 			} catch (e) {
 				throw Error("Failed to parse manga JSON.");
 			}
