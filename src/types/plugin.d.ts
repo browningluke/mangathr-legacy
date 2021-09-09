@@ -1,16 +1,16 @@
 declare module 'plugin' {
+    import { Buffer } from "buffer";
+
     export interface MangaPlugin {
         BASE_URL: string;
         NAME: string;
         TEST_QUERY: string;
 
         getUpdateUrl(query: string): Promise<IDManga>;
-
         getManga(query: string): Promise<Manga>;
-
         getChaptersById(id: string): Promise<Chapter[]>;
-
         selectChapter(chapter: Chapter): Promise<Reader>;
+        imageDownload?: ImageDownloadFn
     }
 
     export interface Manga {
@@ -45,5 +45,10 @@ declare module 'plugin' {
     export interface DownloadItem extends Reader {
         mangaTitle: string,
         refererUrl?: string,
+        imageDownload?: ImageDownloadFn;
+    }
+
+    export interface ImageDownloadFn {
+        (image: Image, filepath: string, refererUrl?: string): Promise<Buffer>;
     }
 }
