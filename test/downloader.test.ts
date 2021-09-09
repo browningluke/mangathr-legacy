@@ -1,5 +1,5 @@
 import { downloadChapter } from "@core/downloader";
-import { Image, Reader } from "plugin";
+import { DownloadItem, Image, Reader } from "plugin";
 import { DOWNLOAD_DIR } from "@core/constants";
 
 import fs from 'fs';
@@ -38,7 +38,11 @@ describe('Downloader', function () {
         it('should download without error', async () => {
             if (fs.existsSync(path))
                 await fsPromises.rm(path);
-            await expect(downloadChapter(testReader, testMangaName, undefined, true))
+            const downloadItem: DownloadItem = {
+                ...testReader,
+                mangaTitle: testMangaName
+            }
+            await expect(downloadChapter(downloadItem, true))
                 .resolves.not.toThrowError();
         });
     });

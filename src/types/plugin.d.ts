@@ -41,4 +41,9 @@ declare module 'plugin' {
         urls: Image[],
         num: number
     }
+
+    export interface DownloadItem extends Reader {
+        mangaTitle: string,
+        refererUrl?: string,
+    }
 }
