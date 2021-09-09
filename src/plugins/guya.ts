@@ -1,5 +1,5 @@
-import { Scraper } from "@core/scraper";
-import { MangaPlugin, Chapter, Reader, Manga, IDManga } from "plugin";
+import { GenericObject, RespBodyType, Scraper } from "@core/scraper";
+import { Chapter, IDManga, Manga, MangaPlugin, Reader } from "plugin";
 
 type GuyaData = { url: string, filename: string }[];
 
@@ -20,13 +20,13 @@ export default class Guya implements MangaPlugin {
         let id = match![2];
         let apiURL = `https://${domain}/api/series/${id}`;
 
-        let resp = await Scraper.get(apiURL);
-
-        if (resp.status_code != 200) {
+        let respJSON: GenericObject;
+        try {
+            let resp = await Scraper.get(apiURL, RespBodyType.JSON);
+            respJSON = resp.data as GenericObject;
+        } catch (e) {
             throw new Error("An error occurred while getting manga info.");
         }
-
-        let respJSON = JSON.parse(resp.body);
 
         let chapters: Chapter[] = [];
         for (const i in respJSON.chapters) {

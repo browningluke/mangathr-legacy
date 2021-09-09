@@ -1,5 +1,5 @@
-import { Scraper } from "@core/scraper";
-import { MangaPlugin, Chapter, Image, Reader, Manga, IDManga } from "plugin";
+import { GenericObject, RespBodyType, Scraper } from "@core/scraper";
+import { Chapter, IDManga, Image, Manga, MangaPlugin, Reader } from "plugin";
 import { pad } from "@helpers/plugins";
 
 interface MDData {
@@ -41,13 +41,14 @@ export default class MangaDex implements MangaPlugin {
     }
 
     private async searchQuery(query: string): Promise<string | null> {
-        let resp = await Scraper.get(`${this.BASE_URL}/manga`, {
-            title: query
-        }, false);
-
-        if (resp.status_code != 200) throw new Error("An error occurred while searching.");
-
-        let searchJSON = JSON.parse(resp.body);
+        let searchJSON: GenericObject;
+        try {
+            let resp = await Scraper.get(`${this.BASE_URL}/manga`, RespBodyType.JSON,
+                { params: { title: query }, escape: false });
+            searchJSON = resp.data as GenericObject;
+        } catch (e) {
+            throw new Error("An error occurred while searching.");
+        }
 
         if (searchJSON['total'] == 0) return null;
 
@@ -55,8 +56,14 @@ export default class MangaDex implements MangaPlugin {
     }
 
     private async getMangaInfoJSON(id: string) {
-        let mangaInfoResp = await Scraper.get(`${this.BASE_URL}/manga/${id}`);
-        let mangaInfoJSON = JSON.parse(mangaInfoResp.body);
+
+        let mangaInfoJSON: GenericObject;
+        try {
+            let mangaInfoResp = await Scraper.get(`${this.BASE_URL}/manga/${id}`, RespBodyType.JSON);
+            mangaInfoJSON = mangaInfoResp.data as GenericObject;
+        } catch (e) {
+            throw new Error("An error occurred while getting manga info JSON.");
+        }
 
         if (mangaInfoJSON["result"] != "ok") {
             throw new Error(mangaInfoJSON["errors"][0]["detail"]);
@@ -79,8 +86,13 @@ export default class MangaDex implements MangaPlugin {
 
             for (const id of element.groups) {
                 if (!(id in scanlationGroups)) {
-                    let resp = await Scraper.get(`${this.BASE_URL}/group/${id}`);
-                    let respJSON = JSON.parse(resp.body);
+                    let respJSON: GenericObject;
+                    try {
+                        let resp = await Scraper.get(`${this.BASE_URL}/group/${id}`, RespBodyType.JSON);
+                        respJSON = resp.data as GenericObject;
+                    } catch (e) {
+                        throw new Error("An error occurred while getting scanlation group data.");
+                    }
 
                     let groupName = respJSON["data"]["attributes"]["name"];
                     scanlationGroups[id] = groupName; // Cache name
@@ -108,13 +120,15 @@ export default class MangaDex implements MangaPlugin {
     }
 
     private async getChaptersFromTitleID(id: string): Promise<{chapters: Chapter[], id: string, title: string}> {
-        let resp = await Scraper.get(`${this.BASE_URL}/manga/${id}/feed`, {
-            limit: 500,
-            "translatedLanguage[]": "en",
-            "order[chapter]": "desc"
-        }, false);
+        let respJSON: GenericObject;
+        try {
+            let resp = await Scraper.get(`${this.BASE_URL}/manga/${id}/feed`, RespBodyType.JSON,
+                { escape: true, params: { limit: 500, "translatedLanguage[]": "en", "order[chapter]": "desc" }});
+            respJSON = resp.data as GenericObject;
+        } catch (e) {
+            throw new Error("An error occurred while getting chapter feed.");
+        }
 
-        let respJSON = JSON.parse(resp.body);
         let mangaInfoJSON = await this.getMangaInfoJSON(id);
         let mangaTitle = mangaInfoJSON["attributes"]["title"]["en"];
         mangaTitle = mangaTitle ? mangaTitle : mangaInfoJSON["attributes"]["title"]["jp"];
@@ -186,8 +200,13 @@ export default class MangaDex implements MangaPlugin {
 
     // NOTE: Returned ID is of parent TITLE not chapter
     private async getChapterFromChapterID(id: string): Promise<{chapters: Chapter[], id: string, title: string}> {
-        let resp = await Scraper.get(`${this.BASE_URL}/chapter/${id}`);
-        let respJSON = JSON.parse(resp.body);
+        let respJSON: GenericObject;
+        try {
+            let resp = await Scraper.get(`${this.BASE_URL}/chapter/${id}`, RespBodyType.JSON);
+            respJSON = resp.data as GenericObject;
+        } catch (e) {
+            throw new Error("An error occured while getting chapter info.")
+        }
 
         if (respJSON["result"] != "ok") {
             throw new Error(respJSON["errors"][0]["detail"]);
@@ -249,9 +268,13 @@ export default class MangaDex implements MangaPlugin {
         let mdData = chapter.opt as MDData;
 
         // Fetch BaseURL
-        let resp = await Scraper.get(`${this.BASE_URL}/at-home/server/${chapter.id}`);
-        let respJSON = JSON.parse(resp.body);
-
+        let respJSON: GenericObject;
+        try {
+            let resp = await Scraper.get(`${this.BASE_URL}/at-home/server/${chapter.id}`, RespBodyType.JSON);
+            respJSON = resp.data as GenericObject;
+        } catch (e) {
+            throw new Error("An error occurred while getting MDHome URL.");
+        }
         let MDHomeBaseURL = respJSON['baseUrl'];
 
         // Build URLs

@@ -1,26 +1,24 @@
-import { Scraper } from "@core/scraper";
+import { GenericObject, RespBodyType, Scraper } from "@core/scraper";
 
 describe('Scraper Requests', function () {
 
     const URL = "https://httpbin.org/anything";
 
     it("should send correct GET requests (no data)", async () => {
-        let resp = await Scraper.get(URL);
+        let resp = await Scraper.get(URL, RespBodyType.JSON);
         expect(resp.status_code).toEqual(200);
 
-        let json = JSON.parse(resp.body);
+        let json = resp.data as GenericObject;
         expect(json.args).toEqual({});
         expect(json.method).toEqual("GET");
         expect(json.data).toEqual("");
     });
 
     it("should send correct GET requests (data, escape)", async () => {
-        let resp = await Scraper.get(URL, {
-            test: "abc def'"
-        }, true);
+        let resp = await Scraper.get(URL, RespBodyType.JSON, { params: { test: "abc def'" }, escape: true });
         expect(resp.status_code).toEqual(200);
 
-        let json = JSON.parse(resp.body);
+        let json = resp.data as GenericObject;
         expect(json.args).toEqual({ test: "abc def'" });
         expect(json.method).toEqual("GET");
         expect(json.form).toEqual({});
@@ -28,12 +26,10 @@ describe('Scraper Requests', function () {
     });
 
     it("should send correct GET requests (data, no escape)", async () => {
-        let resp = await Scraper.get(URL, {
-            test: "abc def'"
-        }, false);
+        let resp = await Scraper.get(URL, RespBodyType.JSON, { params: { test: "abc def'" }, escape: false });
         expect(resp.status_code).toEqual(200);
 
-        let json = JSON.parse(resp.body);
+        let json = resp.data as GenericObject
         expect(json.args).toEqual({ test: "abc def'" });
         expect(json.method).toEqual("GET");
         expect(json.form).toEqual({});
@@ -41,10 +37,10 @@ describe('Scraper Requests', function () {
     });
 
     it("should send correct POST requests (no data)", async () => {
-        let resp = await Scraper.post(URL);
+        let resp = await Scraper.post(URL, RespBodyType.JSON);
         expect(resp.status_code).toEqual(200);
 
-        let json = JSON.parse(resp.body);
+        let json = resp.data as GenericObject;
         expect(json.args).toEqual({});
         expect(json.method).toEqual("POST");
         expect(json.form).toEqual({});
@@ -52,12 +48,10 @@ describe('Scraper Requests', function () {
     });
 
     it("should send correct POST requests (data)", async () => {
-        let resp = await Scraper.post(URL, {
-            test: "abc def'"
-        });
+        let resp = await Scraper.post(URL, RespBodyType.JSON, { body: { test: "abc def'" } });
         expect(resp.status_code).toEqual(200);
 
-        let json = JSON.parse(resp.body);
+        let json = resp.data as GenericObject;
         expect(json.args).toEqual({});
         expect(json.method).toEqual("POST");
         expect(json.form).toEqual({ test: "abc def'" });
@@ -72,8 +66,8 @@ describe('Scraper CSS selector', function () {
     let testHTML: string;
 
     beforeEach(async () => {
-        let resp = await Scraper.get(URL);
-        testHTML = resp.body;
+        let resp = await Scraper.get(URL, RespBodyType.TEXT);
+        testHTML = resp.data as string;
     })
 
    it("should grab correct text with CSS selectors", () => {

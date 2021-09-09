@@ -1,5 +1,5 @@
-import { Scraper } from "@core/scraper";
-import { MangaPlugin, Chapter, Image, Manga, Reader, IDManga } from "plugin";
+import { GenericObject, RespBodyType, Scraper } from "@core/scraper";
+import { Chapter, IDManga, Image, Manga, MangaPlugin, Reader } from "plugin";
 import { pad } from "@helpers/plugins";
 
 const SEARCH_ENDPOINT = "/home_json_search";
@@ -13,13 +13,15 @@ export default class Mangakakalot implements MangaPlugin {
         let mangaUrl;
 
         if (!update) {
-            const res = await Scraper.post(`${this.BASE_URL}${SEARCH_ENDPOINT}`, {
-                searchword: query
-            });
+            let searchJson: GenericObject;
+            try {
+                const res = await Scraper.post(`${this.BASE_URL}${SEARCH_ENDPOINT}`, RespBodyType.JSON,
+                    { body: { searchword: query } });
+                searchJson = res.data as GenericObject;
+            } catch (e) {
+                throw new Error("An error occurred while searching.")
+            }
 
-            if (!res.body || res.status_code != 200) throw "An error occurred while searching";
-
-            let searchJson = JSON.parse(res.body);
 
             if (!searchJson || searchJson.length <= 0) throw "Could not find manga with the title";
 
@@ -28,18 +30,18 @@ export default class Mangakakalot implements MangaPlugin {
             mangaUrl = query;
         }
 
-        const mangaRes = await Scraper.get(mangaUrl);
+        const mangaRes = await Scraper.get(mangaUrl, RespBodyType.TEXT);
 
         // Try for mangakakalot
-        let mangaTitle = Scraper.css(mangaRes.body,
+        let mangaTitle = Scraper.css(mangaRes.data as string,
             ".manga-info-text > li:nth-child(1) > h1:nth-child(1)").text();
 
         // Try for manganelo
         if (!mangaTitle) {
-            mangaTitle = Scraper.css(mangaRes.body, ".story-info-right > h1:nth-child(1)").text()
+            mangaTitle = Scraper.css(mangaRes.data as string, ".story-info-right > h1:nth-child(1)").text()
         }
 
-        return { title: mangaTitle, url: mangaUrl, body: mangaRes.body }
+        return { title: mangaTitle, url: mangaUrl, body: mangaRes.data as string }
     }
 
     _getChapters(body: string): Chapter[] {
@@ -86,11 +88,11 @@ export default class Mangakakalot implements MangaPlugin {
     }
 
     async selectChapter(chapter: Chapter): Promise<Reader> {
-        let res = await Scraper.get(chapter.url!);
+        let res = await Scraper.get(chapter.url!, RespBodyType.TEXT);
 
-        if (!res.body) throw "An error occurred while getting chapter page";
+        if (!res.data) throw "An error occurred while getting chapter page";
 
-        let imgList = Scraper.css(res.body, ".container-chapter-reader > img");
+        let imgList = Scraper.css(res.data as string, ".container-chapter-reader > img");
 
         let imgURLs: Image[] = [];
         let digits = Math.floor(Math.log10(imgList.length)) + 1;
