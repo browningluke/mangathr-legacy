@@ -1,4 +1,4 @@
-import { Image, DownloadItem } from "plugin";
+import { Image, ImageDownloadFn, DownloadItem } from "plugin";
 import { retryFetch } from "@helpers/retry-fetch";
 import { delay } from "@helpers/async";
 
@@ -27,8 +27,25 @@ export function isDownloaded(di: DownloadItem): boolean {
 	return fs.existsSync(filepath);
 }
 
+/*
+	Image download
+ */
+
+const defaultImageDownload: ImageDownloadFn = async (image: Image, filepath: string, refererUrl?: string) => {
+	let refererHeader = !refererUrl ? {} : { headers: { 'referer': refererUrl } };
+
+	let res;
+	try {
+		res = await retryFetch(image.url, refererHeader, 10, 1000)
+	} catch (e) {
+		fs.rmSync(filepath);
+		throw new Error("Failed downloading an image. Giving up on this chapter.");
+	}
+	return (await res.buffer());
+}
+
 export async function downloadChapter(di: DownloadItem,
-								silent = false, delayTime = IMAGE_DELAY_TIME): Promise<void> {
+									  silent = false, delayTime = IMAGE_DELAY_TIME): Promise<void> {
 	const { filepath, dirname } = generatePath(di);
 
 	await fs.promises.mkdir(dirname, { recursive: true });
@@ -58,26 +75,10 @@ export async function downloadChapter(di: DownloadItem,
 			});
 	}
 
-	const downloadImage = async (image: Image, ms: number) => {
-		let refererHeader = !di.refererUrl ? {} :
-			{
-				headers: {
-					'referer': di.refererUrl
-				}
-			};
-
-		let res;
-		try {
-			res = await retryFetch(image.url, refererHeader, 10, 1000)
-		} catch (e) {
-			fs.rmSync(filepath);
-			throw new Error("Failed downloading an image. Giving up on this chapter.");
-		}
-		const buffer = await res.buffer()
-		//console.log(`Status: ${res.status} Filename: ${image.filename}`);
+	const downloadImage = async (image: Image) => {
+		const buffer =
+			await (di.imageDownload ? di.imageDownload : defaultImageDownload)(image, filepath, di.refererUrl);
 		archive.append(buffer, { name: image.filename });
-
-		await delay(ms);
 		if(!silent) bar.tick();
 	}
 
@@ -95,8 +96,9 @@ export async function downloadChapter(di: DownloadItem,
 		}
 
 		for (const item of sliceList(SIMULTANEOUS_IMAGES)) {
-			let promiseList = item.map((i) => downloadImage(i, ms));
+			let promiseList = item.map((i) => downloadImage(i));
 			await Promise.all(promiseList);
+			await delay(ms);
 		}
 	}
 
