@@ -1,6 +1,6 @@
 import { ALL_PLUGIN_NAMES, getPluginFromMap } from "@core/plugins";
 import { generateTable, getUserSelection, readLineAsync } from "./cli";
-import { Chapter, Manga, MangaPlugin } from "plugin";
+import { Chapter, DownloadItem, Manga, MangaPlugin } from "plugin";
 import { downloadChapter, isDownloaded } from "@core/downloader";
 import { shutdown } from "@core/main";
 
@@ -23,15 +23,22 @@ async function searchQuery(plugin: MangaPlugin, register: boolean, argQuery?: st
 async function download(chapter: Chapter, mangaTitle: string, plugin: MangaPlugin, quiet?: boolean) {
     if (!quiet) console.log(`Downloading: ${chapter.title}`);
 
-    if (isDownloaded(mangaTitle, chapter.title, chapter.num)) {
+    if (isDownloaded({mangaTitle: mangaTitle, chapterTitle: chapter.title, num: chapter.num, urls: []})) {
         console.log(`Skipping ${chapter.title}, already downloaded.`);
         return;
     }
 
     let reader = await plugin.selectChapter(chapter);
 
+    const downloadItem: DownloadItem = {
+        ...reader,
+        mangaTitle: mangaTitle,
+        refererUrl: plugin.BASE_URL,
+        imageDownload: plugin.imageDownload
+    }
+
     try {
-        await downloadChapter(reader, mangaTitle, plugin.BASE_URL, quiet);
+        await downloadChapter(downloadItem, quiet);
     } catch (e) {
         console.log(`Error. Download failed. (${e.message})`);
     }

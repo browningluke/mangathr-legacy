@@ -1,4 +1,4 @@
-import { Image, Reader } from "plugin";
+import { Image, DownloadItem } from "plugin";
 import { retryFetch } from "@helpers/retry-fetch";
 import { delay } from "@helpers/async";
 
@@ -7,31 +7,34 @@ import fs from 'fs';
 import ProgressBar from 'progress';
 
 import { DOWNLOAD_DIR, SIMULTANEOUS_IMAGES, IMAGE_DELAY_TIME } from "./constants";
+import { Buffer } from "buffer";
 
-function generatePath(reader: Reader, mangaTitle: string): { filepath: string, dirname: string } {
-	const title = (reader.num ? `${reader.num!} - ` : "") + `${reader.chapterTitle}`;
+/*
+	Path Management
+ */
 
-	const dirname = `${DOWNLOAD_DIR}/${mangaTitle}`;
+function generatePath(di: DownloadItem): { filepath: string, dirname: string } {
+	const title = (di.num ? `${di.num!} - ` : "") + `${di.chapterTitle}`;
+
+	const dirname = `${DOWNLOAD_DIR}/${di.mangaTitle}`;
 	const filepath = `${dirname}/${title}.cbz`;
 
 	return { filepath: filepath, dirname: dirname };
 }
 
-function isDownloaded(mangaTitle: string, chapterTitle: string, num: number): boolean {
-	const { filepath } = generatePath({ chapterTitle: chapterTitle, urls: [], num: num },
-		mangaTitle);
-
+export function isDownloaded(di: DownloadItem): boolean {
+	const { filepath } = generatePath(di);
 	return fs.existsSync(filepath);
 }
 
-async function downloadChapter(reader: Reader, mangaTitle: string, refererUrl?: string,
+export async function downloadChapter(di: DownloadItem,
 								silent = false, delayTime = IMAGE_DELAY_TIME): Promise<void> {
-	const { filepath, dirname } = generatePath(reader, mangaTitle);
+	const { filepath, dirname } = generatePath(di);
 
 	await fs.promises.mkdir(dirname, { recursive: true });
 
 	if (fs.existsSync(filepath)) {
-		if (!silent) console.log(`Skipping ${reader.chapterTitle}, already downloaded.`);
+		if (!silent) console.log(`Skipping ${di.chapterTitle}, already downloaded.`);
 		//throw "Already exists";
 		return;
 	} // Short circuit rather than overwriting.
@@ -45,10 +48,10 @@ async function downloadChapter(reader: Reader, mangaTitle: string, refererUrl?: 
 
 	// Initialize output
 	if (!silent) {
-		console.log("Starting download of: " + reader.chapterTitle); //+ reader.urls.length);
+		console.log("Starting download of: " + di.chapterTitle); //+ reader.urls.length);
 		var bar = new ProgressBar('  downloading [:bar] :percent :etas',
 			{
-				total: reader.urls.length,
+				total: di.urls.length,
 				complete: "=",
 				incomplete: " ",
 				width: 40
@@ -56,10 +59,10 @@ async function downloadChapter(reader: Reader, mangaTitle: string, refererUrl?: 
 	}
 
 	const downloadImage = async (image: Image, ms: number) => {
-		let refererHeader = !refererUrl ? {} :
+		let refererHeader = !di.refererUrl ? {} :
 			{
 				headers: {
-					'referer': refererUrl
+					'referer': di.refererUrl
 				}
 			};
 
@@ -97,10 +100,10 @@ async function downloadChapter(reader: Reader, mangaTitle: string, refererUrl?: 
 		}
 	}
 
-	await getData(reader.urls, delayTime);
+	await getData(di.urls, delayTime);
 
-	if (reader.num != null) {
-		let xmlString = generateXMLString(reader.num, reader.chapterTitle);
+	if (di.num != null) {
+		let xmlString = generateXMLString(di.num, di.chapterTitle);
 		archive.append(Buffer.from(xmlString), { name: "ComicInfo.xml" });
 		if (!silent) console.log("Added ComicInfo!");
 	}
@@ -117,5 +120,3 @@ function generateXMLString(num: number, title: string): string {
 		`<Title>${title}</Title>\n` +
 		`</ComicInfo>`
 }
-
-export { downloadChapter, isDownloaded };

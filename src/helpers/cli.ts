@@ -78,8 +78,9 @@ async function generateTable(chapters: Chapter[], mangaTitle: string) {
     });
 
     chapters.forEach((item, i) => {
-        table.push([chapters.length - i, item.num == null ? "" : item.num, item.title,
-            isDownloaded(mangaTitle, item.title, item.num) ? "Y" : "N"])
+        const downloaded =
+            isDownloaded({mangaTitle: mangaTitle, chapterTitle: item.title, num: item.num, urls: []}) ? "Y" : "N";
+        table.push([chapters.length - i, item.num, item.title, downloaded]);
     })
     table.reverse();
 
