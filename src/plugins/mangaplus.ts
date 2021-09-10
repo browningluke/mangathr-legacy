@@ -121,7 +121,7 @@ export default class MangaPlus implements MangaPlugin {
                 } catch {
                     chapterTitle = currentChapter.subTitle;
                 }
-                chapters.push({ id: currentChapter.chapterId, title: chapterTitle, num: chapterNum});
+                chapters.push({ id: currentChapter.chapterId.toString(), title: chapterTitle, num: chapterNum});
             }
 
             return chapters;
