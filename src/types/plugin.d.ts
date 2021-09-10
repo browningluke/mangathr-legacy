@@ -33,7 +33,9 @@ declare module 'plugin' {
 
     export interface Image {
         url: string,
-        filename: string
+        filename: string,
+        opt?: any; // Stores any misc info, preventing
+                   // the need to make duplicate HTTP requests.
     }
 
     export interface Reader {
