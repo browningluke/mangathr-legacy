@@ -86,13 +86,9 @@ export default class MangaDex implements MangaPlugin {
 
             for (const id of element.groups) {
                 if (!(id in scanlationGroups)) {
-                    let respJSON: GenericObject;
-                    try {
-                        let resp = await Scraper.get(`${this.BASE_URL}/group/${id}`, RespBodyType.JSON);
-                        respJSON = resp.data as GenericObject;
-                    } catch (e) {
-                        throw new Error("An error occurred while getting scanlation group data.");
-                    }
+                    let resp = await Scraper.get(`${this.BASE_URL}/group/${id}`, RespBodyType.JSON);
+                    if (resp.status_code != 200) throw new Error("Failed to get scanlation group data.");
+                    let respJSON = resp.data as GenericObject;
 
                     let groupName = respJSON["data"]["attributes"]["name"];
                     scanlationGroups[id] = groupName; // Cache name
@@ -268,13 +264,9 @@ export default class MangaDex implements MangaPlugin {
         let mdData = chapter.opt as MDData;
 
         // Fetch BaseURL
-        let respJSON: GenericObject;
-        try {
-            let resp = await Scraper.get(`${this.BASE_URL}/at-home/server/${chapter.id}`, RespBodyType.JSON);
-            respJSON = resp.data as GenericObject;
-        } catch (e) {
-            throw new Error("An error occurred while getting MDHome URL.");
-        }
+        let resp = await Scraper.get(`${this.BASE_URL}/at-home/server/${chapter.id}`, RespBodyType.JSON);
+        if (resp.status_code != 200) throw new Error("Failed to get M@Home url.");
+        let respJSON = resp.data as GenericObject;
         let MDHomeBaseURL = respJSON['baseUrl'];
 
         // Build URLs

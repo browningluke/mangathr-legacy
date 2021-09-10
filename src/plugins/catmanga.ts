@@ -1,6 +1,6 @@
 import { GenericObject, RespBodyType, Scraper } from "@core/scraper";
 import { Chapter, IDManga, Image, Manga, MangaPlugin, Reader}  from "plugin";
-import { pad } from "@helpers/plugins";
+import { pad, fuzzySearch } from "@helpers/plugins";
 
 interface APIManga {
 	alt_titles: string[],
@@ -188,9 +188,4 @@ export default class CatManga implements MangaPlugin {
 
 	}
 	
-}
-
-function fuzzySearch(query: string, trueString: string): boolean {
-	return trueString.toLowerCase()
-		.indexOf(query.toLowerCase()) !== -1;
 }
