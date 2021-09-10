@@ -16,8 +16,6 @@ enum URLType {
     TITLE = "title"
 }
 
-// TODO: support chapters with more than 500 total chapters (due to API query limit)
-
 export default class MangaDex implements MangaPlugin {
 
     BASE_URL = "https://api.mangadex.org";
@@ -44,12 +42,11 @@ export default class MangaDex implements MangaPlugin {
         let searchJSON: GenericObject;
         try {
             let resp = await Scraper.get(`${this.BASE_URL}/manga`, RespBodyType.JSON,
-                { params: { title: query }, escape: false });
+                { params: { title: query, "order[relevance]": "desc", limit: 1 }, escape: false });
             searchJSON = resp.data as GenericObject;
         } catch (e) {
             throw new Error("An error occurred while searching.");
         }
-
         if (searchJSON['total'] == 0) return null;
 
         return searchJSON['results'][0]["data"]["id"];
@@ -69,6 +66,37 @@ export default class MangaDex implements MangaPlugin {
             throw new Error(mangaInfoJSON["errors"][0]["detail"]);
         }
         return mangaInfoJSON["data"];
+    }
+
+    // Loop to get over 500 chapter limit
+    private async getAllChapterData(id: string): Promise<GenericObject[]> {
+        const getData = async (offset: number) => {
+            try {
+                let resp = await Scraper.get(`${this.BASE_URL}/manga/${id}/feed`, RespBodyType.JSON,
+                    {
+                        escape: true,
+                        params: {
+                            limit: 500, offset: offset,
+                            "translatedLanguage[]": "en", "order[chapter]": "desc",
+                        }
+                    });
+                return resp.data as GenericObject;
+            } catch (e) {
+                throw new Error("An error occurred while getting chapter feed.");
+            }
+        }
+
+        const firstChapters = await getData(0);
+        const total = firstChapters["total"];
+
+        let restChapters: GenericObject[] = [];
+        const x = Math.ceil(total / 500) - 1;
+        for (let i = 0; i < x; i++) {
+            const chapters = (await getData(500 + 500 * i))["results"];
+            restChapters.push(...chapters);
+        }
+
+        return [...firstChapters["results"], ...restChapters];
     }
 
     /*
@@ -116,22 +144,15 @@ export default class MangaDex implements MangaPlugin {
     }
 
     private async getChaptersFromTitleID(id: string): Promise<{chapters: Chapter[], id: string, title: string}> {
-        let respJSON: GenericObject;
-        try {
-            let resp = await Scraper.get(`${this.BASE_URL}/manga/${id}/feed`, RespBodyType.JSON,
-                { escape: true, params: { limit: 500, "translatedLanguage[]": "en", "order[chapter]": "desc" }});
-            respJSON = resp.data as GenericObject;
-        } catch (e) {
-            throw new Error("An error occurred while getting chapter feed.");
-        }
-
         let mangaInfoJSON = await this.getMangaInfoJSON(id);
         let mangaTitle = mangaInfoJSON["attributes"]["title"]["en"];
         mangaTitle = mangaTitle ? mangaTitle : mangaInfoJSON["attributes"]["title"]["jp"];
 
+        let chapterData = await this.getAllChapterData(id);
+
         // Format all chapters
         let rawChapters: RawChapter[] = [];
-        for (const element of respJSON['results']) {
+        for (const element of chapterData) {
             let attributes = element["data"]["attributes"];
 
             let id = element["data"]["id"];
