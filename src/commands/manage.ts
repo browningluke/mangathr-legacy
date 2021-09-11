@@ -1,26 +1,37 @@
 import { shutdown } from "@core/main";
 import { getUserConfirmation, getUserSelection, readLineAsync } from "@helpers/cli";
+import { getPluginFromMap } from "@core/plugins";
 
 import { Database, MangaUpdate } from "database";
+import { MangaPlugin } from "plugin";
 
 import { Command as Commander } from "commander";
 import Table from "cli-table3";
 
 export function initManageCommand(program: Commander, db: Database) {
-    const deleteFunction = async (id: string, options: any) => {
-        await deleteFromDatabase(db, id, options.y);
+    const deleteFunction = async (plugin: string | undefined, id: string | undefined, options: any) => {
+        let target: { plugin: MangaPlugin, id: string } | undefined;
+
+        if (id && plugin) {
+            const parsedPlugin = getPluginFromMap(plugin);
+            if (!parsedPlugin){
+                console.log("Please enter a valid plugin.");
+                await shutdown(true);
+            }
+            target = { id, plugin: parsedPlugin! };
+        }
+        await deleteFromDatabase(db, target, options.y);
     }
 
-    const listFunction = async (options: any) => {
-        await printListFromDatabase(db, options.showChapters);
-    }
+    const listFunction = async (options: any) => { await printListFromDatabase(db, options.showChapters); }
 
     let manageCommand = program
         .command(`manage`)
+        .alias('m')
         .description("manage the manga currently registered in the database");
 
     manageCommand
-        .command(`delete [id]`)
+        .command(`delete [plugin] [id]`)
         .description("delete a specified manga from the database")
         .option('-y', 'skip user confirmation')
         .action(deleteFunction);
@@ -35,52 +46,63 @@ export function initManageCommand(program: Commander, db: Database) {
 export async function handleManageDialog(db: Database) {
     switch (await getUserSelection(["List", "Delete"])) {
         case "List":
-            return printListFromDatabase(db)
+            return printListFromDatabase(db);
         case "Delete":
             return deleteFromDatabase(db);
         default:
-            throw new Error("Switch case outside available list.")
+            throw new Error("Switch case outside available list.");
     }
 }
 
-async function deleteFromDatabase(db: Database, id?: string, skipConfirmation = false) {
-    const getUserResp = async (mangaList: MangaUpdate[]) => {
+async function deleteFromDatabase(db: Database, target?: { plugin: MangaPlugin, id: string },
+                                  skipConfirmation = false) {
+    const getUserResp = async () => {
+        // Get plugin from user
+        let pluginResp: MangaPlugin;
+        while (true) {
+            process.stdout.write("Please enter a manga plugin: ");
+            const pluginRespString = await readLineAsync();
+            const tempPlugin = getPluginFromMap(pluginRespString);
+
+            if (tempPlugin) {
+                pluginResp = tempPlugin;
+                break;
+            }
+            console.log("Please enter an valid plugin.");
+        }
+
+        const mangaList = await printListFromDatabase(db, false, (mu) => {
+            return mu.plugin == pluginResp.NAME;
+        })
         const mangaIDs: string[] = mangaList.map((manga) => manga.id);
 
         const ensureRespIsInList = (resp: string) => {
             return mangaIDs.includes(resp);
         }
 
+        // Get manga id from user
         let respString: string;
         while (true) {
             process.stdout.write("Please enter a manga id: ");
             respString = await readLineAsync();
 
-            if (!ensureRespIsInList(respString)) {
-                console.log("Please enter an ID of a manga is the list.")
-                continue;
-            }
-
-            break
+            if (ensureRespIsInList(respString)) break;
+            console.log("Please enter an ID of a manga is the list.");
         }
-        return respString;
+        return { id: respString, plugin: pluginResp };
     }
 
-    if (!id) {
+    if (!target) {
         const mangaList = await printListFromDatabase(db);
 
         if (mangaList.length == 0) {
             console.log("Database is empty. Nothing to delete.");
             return;
         }
-
-        id = await getUserResp(mangaList);
+        target = await getUserResp();
     }
 
-    const searchResp = await db.find({
-        id: id
-    });
-
+    const searchResp = await db.find({ id: target.id, plugin: target.plugin.NAME });
     const item = searchResp[0];
 
     if (!item) {
@@ -103,11 +125,12 @@ async function deleteFromDatabase(db: Database, id?: string, skipConfirmation = 
     console.log(`Deleted ${item.title}`);
 }
 
-async function printListFromDatabase(db: Database, showChapters = false): Promise<MangaUpdate[]> {
-    let colWidths = showChapters ? [25, 20, 33] : [35, 43];
+async function printListFromDatabase(db: Database, showChapters = false,
+                                     filter?: (mu: MangaUpdate) => boolean): Promise<MangaUpdate[]> {
+    let colWidths = showChapters ? [25, 20, 15, 33] : [35, 43, 15];
 
     let table = new Table({
-        head: showChapters ? ['title', 'id', 'chapters'] : ['title', 'id'],
+        head: showChapters ? ['title', 'id', 'plugin', 'chapters'] : ['title', 'id', 'plugin'],
         chars: {'mid': '', 'left-mid': '', 'mid-mid': '', 'right-mid': ''},
         colWidths: colWidths, wordWrap: true
     });
@@ -116,6 +139,8 @@ async function printListFromDatabase(db: Database, showChapters = false): Promis
 
     try {
         const printAllManga = async (manga: MangaUpdate) => {
+            if (filter && !filter(manga)) return manga; // If filtered out, skip printing
+
             mangaList.push(manga);
 
             // Character length splitting (until https://github.com/cli-table/cli-table3/pull/217 is merged)
@@ -138,9 +163,9 @@ async function printListFromDatabase(db: Database, showChapters = false): Promis
                 }).join(", ");
                 chapterString = addSpacesToStringAtLength(chapterString, colWidths[2] - 2);
 
-                table.push([manga.title, id, chapterString]);
+                table.push([manga.title, id, manga.plugin, chapterString]);
             } else {
-                table.push([manga.title, id]);
+                table.push([manga.title, id, manga.plugin]);
             }
 
             return manga;
