@@ -34,20 +34,18 @@ export default class SQLite implements Database {
         Setup methods
     */
 
-    private readonly db: SQLite3.Database;
+    private db: SQLite3.Database | undefined; // undefined, since db is only opened when setup() is called
     private static readonly TABLE_NAME = "manga";
     private static readonly SCHEMA = "(plugin TEXT, title TEXT, id TEXT, chapters TEXT)";
 
-    constructor() {
+    async setup() {
         const filePath = Config.CONFIG.SQLITE_STORAGE;
 
         // Handle full path not existing
         fs.mkdirSync(path.dirname(filePath), { recursive: true })
 
         this.db = new SQLite3(filePath); //, { verbose: console.log });
-    }
 
-    async setup() {
         // Create table
         let stmt;
         try {
@@ -67,9 +65,11 @@ export default class SQLite implements Database {
         }
     }
 
-    async close() { this.db.close(); }
+    async close() { this.db!.close(); }
 
     async reset() {
+        if (!this.db) throw new Error("Setup() must be called before db can be used.");
+
         const stmt = this.db.prepare(`DROP TABLE ${SQLite.TABLE_NAME};`);
         const info = stmt.run();
         console.log(`drop table result ${info.changes}`);
@@ -81,6 +81,8 @@ export default class SQLite implements Database {
     */
 
     private async insertOne(obj: MangaUpdate) {
+        if (!this.db) throw new Error("Setup() must be called before db can be used.");
+
         const insert = this.db
             .prepare(`INSERT INTO ${SQLite.TABLE_NAME} (plugin, title, id, chapters)` +
                 ` VALUES (@plugin, @title, @id, @chapters)`);
@@ -109,6 +111,8 @@ export default class SQLite implements Database {
     }
 
     private generateSelectStatement(obj?: PartialMUNoChapters) {
+        if (!this.db) throw new Error("Setup() must be called before db can be used.");
+
         let queryString = " WHERE ";
 
         if (obj) queryString += SQLite.generateStringFromMangaUpdate(obj);
@@ -118,6 +122,8 @@ export default class SQLite implements Database {
     }
 
     private deleteItem(obj: { plugin: string, title: string, id: string }) {
+        if (!this.db) throw new Error("Setup() must be called before db can be used.");
+
         const stmt = this.db
             .prepare(`DELETE FROM ${SQLite.TABLE_NAME}` +
                 ` WHERE plugin = @plugin AND title = @title` +
@@ -127,6 +133,8 @@ export default class SQLite implements Database {
     }
 
     private updateItem(obj: { plugin: string, title: string, id: string }, newObj: Partial<MangaUpdate>) {
+        if (!this.db) throw new Error("Setup() must be called before db can be used.");
+
         let andString = SQLite.generateStringFromMangaUpdate(newObj);
 
         // If new object is empty, don't update

@@ -1,27 +1,27 @@
-import Sqlite from "@databases/sqlite";
+import SQLite from "@databases/sqlite";
+import Config from "@core/config";
 
 import { handleDialog, initCommands } from "./commands";
-import { Database } from "database";
 
 import { Command as Commander } from 'commander';
 import { ALL_PLUGIN_NAMES } from "./plugins";
 const program = new Commander();
 
-const db = new Sqlite();
+let db = new SQLite();
 
 export async function run() {
-	try {
-		await db.setup();
-	} catch (err) {
-		console.error(err);
-		return;
-	}
-
-	handleArgsNew(db);
-}
-function handleArgsNew(db: Database) {
 	program
 		.description("A CLI utility to download manga chapters from various online platforms.")
+		.addHelpText('after', `\nExample:\n    $ mangathr --help`)
+		.hook('preAction', async () => await db.setup() );
+
+	program
+		.option('--db-path <path>', "specify path to database",
+			(v: string) => Config.CONFIG.SQLITE_STORAGE = v)
+		.option('--dest <path>', "specify path to save files",
+			(v: string) => Config.CONFIG.DOWNLOAD_DIR = v)
+
+	program
 		.option('--list-plugins', "prints all available plugin names")
 		.action(async (option) => {
 			switch (true) {
@@ -35,7 +35,7 @@ function handleArgsNew(db: Database) {
 		});
 
 	initCommands(program, db);
-	program.parse(process.argv);
+	await program.parseAsync(process.argv);
 }
 
 export const shutdown = async (q = false) => {

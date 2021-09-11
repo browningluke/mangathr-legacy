@@ -1,7 +1,6 @@
 import { Chapter } from "plugin";
 import { Database, MangaUpdate } from "database";
 import { getPluginFromMap } from "@core/plugins";
-// import { delay } from "../helpers/async";
 import { download } from "@helpers/commands";
 import { UPDATE_CHAPTER_DELAY_TIME } from "@core/constants";
 
@@ -12,6 +11,7 @@ export function initUpdateCommand(program: Commander, db: Database) {
 
     program
        .command(`update`)
+       .alias('u')
        .description("check registered manga for new chapters")
        .action(updateFunction);
 }

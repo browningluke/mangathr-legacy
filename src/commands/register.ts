@@ -21,6 +21,7 @@ export function initRegisterCommand(program: Commander, db: Database) {
 
 	program
 		.command(`register <plugin> <query>`)
+		.alias('r')
 		.description("register manga to database for new chapter checking")
 		.option('-y', 'skip user confirmation')
 		.action(registerFunction);

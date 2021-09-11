@@ -16,6 +16,7 @@ export function initDownloadCommand(program: Commander, db: Database) {
 
     program
         .command(`download <plugin> <query>`)
+        .alias('d')
         .description("download chapter(s) of a manga from plugin")
         .option('-y', 'download all chapters without user confirmation')
         .action(downloadFunction);
