@@ -1,12 +1,13 @@
 import { Image, ImageDownloadFn, DownloadItem } from "plugin";
 import { retryFetch } from "@helpers/retry-fetch";
 import { delay } from "@helpers/async";
+import Config from "@core/config";
 
 import archiver from 'archiver';
 import fs from 'fs';
 import ProgressBar from 'progress';
 
-import { DOWNLOAD_DIR, SIMULTANEOUS_IMAGES, IMAGE_DELAY_TIME } from "./constants";
+import { SIMULTANEOUS_IMAGES, IMAGE_DELAY_TIME } from "./constants";
 import { Buffer } from "buffer";
 
 /*
@@ -16,7 +17,7 @@ import { Buffer } from "buffer";
 function generatePath(di: DownloadItem): { filepath: string, dirname: string } {
 	const title = (di.num ? `${di.num!} - ` : "") + `${di.chapterTitle}`;
 
-	const dirname = `${DOWNLOAD_DIR}/${di.mangaTitle}`;
+	const dirname = `${Config.CONFIG.DOWNLOAD_DIR}/${di.mangaTitle}`;
 	const filepath = `${dirname}/${title}.cbz`;
 
 	return { filepath: filepath, dirname: dirname };
@@ -48,6 +49,7 @@ export async function downloadChapter(di: DownloadItem,
 									  silent = false, delayTime = IMAGE_DELAY_TIME): Promise<void> {
 	const { filepath, dirname } = generatePath(di);
 
+	// Handle full path not existing
 	await fs.promises.mkdir(dirname, { recursive: true });
 
 	if (fs.existsSync(filepath)) {
