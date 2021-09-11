@@ -1,8 +1,8 @@
 import { Database, MangaUpdate } from "database";
-import { delay} from "@helpers/async";
+import { delay } from "@helpers/async";
 import { MangaAlreadyRegisteredError } from "@core/exceptions";
+import Config from "@core/config";
 import SQLite3, { SqliteError } from 'better-sqlite3';
-import { SQLITE_STORAGE } from "@core/constants";
 import path from "path";
 import fs from "fs";
 
@@ -39,12 +39,12 @@ export default class SQLite implements Database {
     private static readonly SCHEMA = "(plugin TEXT, title TEXT, id TEXT, chapters TEXT)";
 
     constructor() {
-        //console.log(`Opening here: ${SQLITE_STORAGE}`);
+        const filePath = Config.CONFIG.SQLITE_STORAGE;
 
-        // Handle path not existing
-        fs.mkdirSync(path.dirname(SQLITE_STORAGE), { recursive: true })
+        // Handle full path not existing
+        fs.mkdirSync(path.dirname(filePath), { recursive: true })
 
-        this.db = new SQLite3(SQLITE_STORAGE); //, { verbose: console.log });
+        this.db = new SQLite3(filePath); //, { verbose: console.log });
     }
 
     async setup() {

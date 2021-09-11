@@ -1,8 +1,8 @@
 import SQLite from "@databases/sqlite";
 import { Database, MangaUpdate } from "database";
 import { MangaAlreadyRegisteredError } from "@core/exceptions";
+import Config from "@core/config";
 import fs from "fs";
-import { SQLITE_STORAGE } from "@core/constants";
 import MockResult = jest.MockResult;
 
 describe('SQLite', function () {
@@ -39,7 +39,7 @@ describe('SQLite', function () {
 
     describe('Setup', function () {
         it('should open without error', async function () {
-            await fs.promises.rm(SQLITE_STORAGE, { force: true });
+            await fs.promises.rm(Config.CONFIG.SQLITE_STORAGE, { force: true });
             db = new SQLite();
             await expect(db.setup()).resolves.not.toThrowError();
             await expect(db.findAll()).resolves.toEqual([]);
