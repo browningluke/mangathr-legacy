@@ -10,7 +10,7 @@ declare module 'plugin' {
         getManga(query: string): Promise<Manga>;
         getChaptersById(id: string): Promise<Chapter[]>;
         selectChapter(chapter: Chapter): Promise<Reader>;
-        imageDownload?: ImageDownloadFn
+        imageDownload?: () => ImageDownloadFn;
     }
 
     export interface Manga {
