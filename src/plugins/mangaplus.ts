@@ -187,31 +187,33 @@ export default class MangaPlus implements MangaPlugin {
         }
     }
 
-    async imageDownload(image: Image, filepath: string, refererUrl?: string) {
-        const { url, opt} = image;
-        const { Origin: _, ...headers } = this.BASE_HEADERS;
+    public imageDownload() {
+        return async (image: Image, filepath: string, refererUrl?: string) => {
+            const {url, opt} = image;
+            const {Origin: _, ...headers} = this.BASE_HEADERS;
 
-        const key = hexStringToByte((opt as MPData).encryptionKey);
-        const a = key.length;
+            const key = hexStringToByte((opt as MPData).encryptionKey);
+            const a = key.length;
 
-        let res, data;
-        try {
-            res = await retryFetch(url, {
-                headers: { ...headers,  Referer: url }
-            }, 10, 1000)
-            const buffer = await res.buffer();
+            let res, data;
+            try {
+                res = await retryFetch(url, {
+                    headers: {...headers, Referer: url}
+                }, 10, 1000)
+                const buffer = await res.buffer();
 
-            // Decrypt image
-            data = Uint8Array.from(buffer);
-            for (const x in data) {
-                const i = x as unknown as number; // x is a number, TS thinks is a string
-                data[i] = data[i] ^ key[i % a]
+                // Decrypt image
+                data = Uint8Array.from(buffer);
+                for (const x in data) {
+                    const i = x as unknown as number; // x is a number, TS thinks is a string
+                    data[i] = data[i] ^ key[i % a]
+                }
+            } catch (e) {
+                fs.rmSync(filepath);
+                throw new Error("Failed downloading an image. Giving up on this chapter.");
             }
-        } catch (e) {
-            fs.rmSync(filepath);
-            throw new Error("Failed downloading an image. Giving up on this chapter.");
+            return Buffer.from(data);
         }
-        return Buffer.from(data);
     }
 }
 

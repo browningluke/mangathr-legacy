@@ -34,7 +34,7 @@ async function download(chapter: Chapter, mangaTitle: string, plugin: MangaPlugi
         ...reader,
         mangaTitle: mangaTitle,
         refererUrl: plugin.BASE_URL,
-        imageDownload: plugin.imageDownload
+        imageDownload: plugin.imageDownload ? plugin.imageDownload() : undefined
     }
 
     try {
