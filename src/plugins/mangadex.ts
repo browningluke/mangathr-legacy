@@ -2,6 +2,75 @@ import { GenericObject, RespBodyType, Scraper } from "@core/scraper";
 import { Chapter, IDManga, Image, Manga, MangaPlugin, Reader } from "plugin";
 import { pad } from "@helpers/plugins";
 
+/*
+    MangaDex API Types
+ */
+
+interface MDAPIManga {
+    id: string;
+    type: "manga";
+    attributes: {
+        title: { en?: string; jp?: string; }
+    }
+    relationships: {
+        id: string;
+        type: "author" | "artist" | "cover_art"
+    }[]
+}
+
+interface MDAPIChapter {
+    id: string;
+    type: "chapter";
+    attributes: {
+        volume: string;
+        chapter: string;
+        title: string;
+        hash: string;
+        data: string[];
+        dataSaver: string[];
+    }
+    relationships: {
+        id: string;
+        type: "scanlation_group" | "manga" | "user"
+    }[]
+}
+
+interface MDAPIGroup {
+    id: string;
+    type: "scanlation_group";
+    attributes: { name: string }
+}
+
+/*
+    Response Types
+ */
+
+interface MDAPIRespRoot {
+    result: "ok" | "error";
+    response: string;
+    errors?: {
+        id: string;
+        status: number;
+        title: string;
+        detail: string;
+    }[]
+}
+
+interface MDAPIRespList extends MDAPIRespRoot { limit: number; offset: number; total: number; }
+
+// Manga Types
+interface MDAPIMangaResp extends MDAPIRespRoot { data: MDAPIManga }
+interface MDAPIMangaSearchResp extends MDAPIRespList { data: MDAPIManga[] }
+interface MDAPIMangaFeedResp extends MDAPIRespList { data: MDAPIChapter[] }
+
+// Other Types
+interface MDAPIChapterResp extends MDAPIRespRoot { data: MDAPIChapter }
+interface MDAPIGroupResp extends MDAPIRespRoot { data: MDAPIGroup }
+
+/*
+    Custom Types
+ */
+
 interface MDData {
     hash: string;
     pages: string[];
@@ -39,38 +108,37 @@ export default class MangaDex implements MangaPlugin {
     }
 
     private async searchQuery(query: string): Promise<string | null> {
-        let searchJSON: GenericObject;
+        let searchJSON: MDAPIMangaSearchResp;
         try {
             let resp = await Scraper.get(`${this.BASE_URL}/manga`, RespBodyType.JSON,
                 { params: { title: query, "order[relevance]": "desc", limit: 1 }, escape: false });
-            searchJSON = resp.data as GenericObject;
+            searchJSON = resp.data as MDAPIMangaSearchResp;
         } catch (e) {
             throw new Error("An error occurred while searching.");
         }
-        if (searchJSON['total'] == 0) return null;
+        if (searchJSON.total == 0) return null;
 
-        return searchJSON['results'][0]["data"]["id"];
+        return searchJSON.data[0].id;
     }
 
-    private async getMangaInfoJSON(id: string) {
-
-        let mangaInfoJSON: GenericObject;
+    private async getMangaInfoJSON(id: string): Promise<MDAPIManga> {
+        let mangaInfoJSON: MDAPIMangaResp;
         try {
             let mangaInfoResp = await Scraper.get(`${this.BASE_URL}/manga/${id}`, RespBodyType.JSON);
-            mangaInfoJSON = mangaInfoResp.data as GenericObject;
+            mangaInfoJSON = mangaInfoResp.data as MDAPIMangaResp;
         } catch (e) {
             throw new Error("An error occurred while getting manga info JSON.");
         }
 
-        if (mangaInfoJSON["result"] != "ok") {
-            throw new Error(mangaInfoJSON["errors"][0]["detail"]);
+        if (mangaInfoJSON.result != "ok") {
+            throw new Error(mangaInfoJSON.errors![0].detail);
         }
-        return mangaInfoJSON["data"];
+        return mangaInfoJSON.data;
     }
 
     // Loop to get over 500 chapter limit
-    private async getAllChapterData(id: string): Promise<GenericObject[]> {
-        const getData = async (offset: number) => {
+    private async getAllChapterData(id: string): Promise<MDAPIChapter[]> {
+        const getData = async (offset: number): Promise<MDAPIMangaFeedResp> => {
             try {
                 let resp = await Scraper.get(`${this.BASE_URL}/manga/${id}/feed`, RespBodyType.JSON,
                     {
@@ -80,23 +148,23 @@ export default class MangaDex implements MangaPlugin {
                             "translatedLanguage[]": "en", "order[chapter]": "desc",
                         }
                     });
-                return resp.data as GenericObject;
+                return resp.data as MDAPIMangaFeedResp;
             } catch (e) {
                 throw new Error("An error occurred while getting chapter feed.");
             }
         }
 
         const firstChapters = await getData(0);
-        const total = firstChapters["total"];
+        const total = firstChapters.total;
 
-        let restChapters: GenericObject[] = [];
+        let restChapters: MDAPIChapter[] = [];
         const x = Math.ceil(total / 500) - 1;
         for (let i = 0; i < x; i++) {
-            const chapters = (await getData(500 + 500 * i))["results"];
+            const chapters = (await getData(500 + 500 * i)).data;
             restChapters.push(...chapters);
         }
 
-        return [...firstChapters["results"], ...restChapters];
+        return [...firstChapters.data, ...restChapters];
     }
 
     /*
@@ -104,7 +172,7 @@ export default class MangaDex implements MangaPlugin {
      */
 
     private async getGroupsForChapters(chapters: RawChapter[]): Promise<Chapter[]> {
-        let scanlationGroups: any = {};
+        let scanlationGroups: { [key in string]: any } = {};
         let newChapters: Chapter[] = [];
 
         for (const element of chapters) {
@@ -116,9 +184,9 @@ export default class MangaDex implements MangaPlugin {
                 if (!(id in scanlationGroups)) {
                     let resp = await Scraper.get(`${this.BASE_URL}/group/${id}`, RespBodyType.JSON);
                     if (resp.status_code != 200) throw new Error("Failed to get scanlation group data.");
-                    let respJSON = resp.data as GenericObject;
+                    let respJSON = resp.data as MDAPIGroupResp;
 
-                    let groupName = respJSON["data"]["attributes"]["name"];
+                    let groupName = respJSON.data.attributes.name;
                     scanlationGroups[id] = groupName; // Cache name
                     groups.push(groupName);
                 } else {
@@ -145,35 +213,37 @@ export default class MangaDex implements MangaPlugin {
 
     private async getChaptersFromTitleID(id: string): Promise<{chapters: Chapter[], id: string, title: string}> {
         let mangaInfoJSON = await this.getMangaInfoJSON(id);
-        let mangaTitle = mangaInfoJSON["attributes"]["title"]["en"];
-        mangaTitle = mangaTitle ? mangaTitle : mangaInfoJSON["attributes"]["title"]["jp"];
+        let mangaTitle = mangaInfoJSON.attributes.title.en;
+        mangaTitle = mangaTitle ? mangaTitle : mangaInfoJSON.attributes.title.jp;
 
         let chapterData = await this.getAllChapterData(id);
 
         // Format all chapters
         let rawChapters: RawChapter[] = [];
         for (const element of chapterData) {
-            let attributes = element["data"]["attributes"];
+            let attributes = element.attributes;
+            let id = element.id;
 
-            let id = element["data"]["id"];
-
-            let chapterNumString = attributes["chapter"];
+            let chapterNumString = attributes.chapter;
             let chapterNum = parseFloat(chapterNumString);
+
+            // Fixes Oneshots being labeled as NaN
+            if (isNaN(chapterNum) && attributes["title"].toLowerCase().includes("oneshot")) chapterNum = 0;
 
             // Format title
             let chapterTitle = `Chapter ${chapterNum}`;
-            if (attributes["title"] != "" && attributes["title"] != null) {
-                chapterTitle += ` - ${attributes["title"]}`;
+            if (attributes.title != "" && attributes.title != null) {
+                chapterTitle += ` - ${attributes.title}`;
             }
 
             let opt: MDData = {
-                hash: attributes["hash"],
-                pages: attributes["data"]
+                hash: attributes.hash,
+                pages: attributes.data
             }
 
-            let groups: string[] = element["relationships"]
-                .filter((obj: any) => obj.type == "scanlation_group")
-                .map((obj: any) => obj.id);
+            let groups: string[] = element.relationships
+                .filter((obj) => obj.type == "scanlation_group")
+                .map((obj) => obj.id);
 
             rawChapters.push({
                 id: id,
@@ -205,9 +275,9 @@ export default class MangaDex implements MangaPlugin {
             .sort((a, b) => b.num - a.num);
 
         return {
-            title: mangaTitle,
+            title: mangaTitle!,
             chapters: chapters,
-            id: mangaInfoJSON["id"]
+            id: mangaInfoJSON.id
         }
     }
 
@@ -217,50 +287,56 @@ export default class MangaDex implements MangaPlugin {
 
     // NOTE: Returned ID is of parent TITLE not chapter
     private async getChapterFromChapterID(id: string): Promise<{chapters: Chapter[], id: string, title: string}> {
-        let respJSON: GenericObject;
+        let respJSON: MDAPIChapterResp;
         try {
             let resp = await Scraper.get(`${this.BASE_URL}/chapter/${id}`, RespBodyType.JSON);
-            respJSON = resp.data as GenericObject;
+            respJSON = resp.data as MDAPIChapterResp;
         } catch (e) {
-            throw new Error("An error occured while getting chapter info.")
+            throw new Error("An error occurred while getting chapter info.")
         }
 
-        if (respJSON["result"] != "ok") {
-            throw new Error(respJSON["errors"][0]["detail"]);
+        if (respJSON.result != "ok") {
+            throw new Error(respJSON.errors![0].detail);
         }
 
-        let attributes = respJSON["data"]["attributes"];
-        let parentId = respJSON["relationships"]
-            .filter((a: { id: string, type: string }) => a.type ==  "manga")[0]["id"];
+        let attributes = respJSON.data.attributes;
+        let parentId = respJSON.data.relationships
+            .filter((a) => a.type ==  "manga")[0].id;
 
         let parentInfoJSON = await this.getMangaInfoJSON(parentId);
-        let mangaTitle = parentInfoJSON["attributes"]["title"]["en"];
-        mangaTitle = mangaTitle ? mangaTitle : parentInfoJSON["attributes"]["title"]["jp"];
+        let mangaTitle = parentInfoJSON.attributes.title.en
+        mangaTitle = mangaTitle ? mangaTitle : parentInfoJSON.attributes.title.jp;
 
         let opt: MDData = {
-            hash: attributes["hash"],
-            pages: attributes["data"]
+            hash: attributes.hash,
+            pages: attributes.data
+        }
+
+        let chapterNum = parseFloat(attributes.chapter);
+        let chapterTitle = `Chapter ${chapterNum}`;
+        if (attributes.title != "" && attributes.title != null) {
+            chapterTitle += ` - ${attributes.title}`;
         }
 
         let chapter = {
             id: id,
-            title: attributes["title"],
-            num: attributes["chapter"],
+            title: chapterTitle,
+            num: chapterNum,
             opt: opt
         }
 
         return {
             chapters: [chapter],
             id: parentId,
-            title: mangaTitle
+            title: mangaTitle!
         }
     }
 
     private async getMangaAndID(query: string): Promise<{chapters: Chapter[], id: string, title: string}> {
         let parsedURL = MangaDex.parseURL(query);
 
-        let id = parsedURL ? parsedURL['id'] : await this.searchQuery(query);
-        let type = parsedURL ? parsedURL['type'] : URLType.TITLE;
+        let id = parsedURL ? parsedURL.id : await this.searchQuery(query);
+        let type = parsedURL ? parsedURL.type : URLType.TITLE;
         if (!id) throw new Error("Could not find manga with that title.");
 
         if (type == URLType.TITLE) {
