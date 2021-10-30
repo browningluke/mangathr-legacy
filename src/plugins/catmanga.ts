@@ -2,11 +2,10 @@ import { GenericObject, RespBodyType, Scraper } from "@core/scraper";
 import { Chapter, IDManga, Image, Manga, MangaPlugin, Reader}  from "plugin";
 import { pad, fuzzySearch } from "@helpers/plugins";
 
-interface APIManga {
+interface APIBaseManga {
 	alt_titles: string[],
 	authors: string[],
 	genres: string[],
-	chapters: APIChapters[],
 	title: string,
 	series_id: string,
 	description: string,
@@ -15,12 +14,25 @@ interface APIManga {
 		source: string,
 		width: number,
 		height: number
-	},
-	all_covers: any[]
+	}
+}
+
+interface APIIndexManga extends APIBaseManga {
+	chapter_text: string,
+	groups: string[]
+}
+
+interface APIManga extends APIBaseManga {
+	chapters: APIChapters[],
+	all_covers: {
+		source: string,
+		width: number,
+		height: number
+	}[]
 }
 
 interface APIChapters {
-	groups: any[],
+	groups: string[],
 	number: number,
 	title?: string
 }
@@ -72,9 +84,9 @@ export default class CatManga implements MangaPlugin {
 			throw Error("Failed to get index information.");
 		}
 
-		const allSeries: APIManga[] = indexJSON['pageProps']['series'];
+		const allSeries: APIIndexManga[] = indexJSON['pageProps']['series'];
 
-		const findManga = (): APIManga | undefined => {
+		const findManga = (): APIIndexManga | undefined => {
 			for (const element of allSeries) {
 				if (seriesId) {
 					if (seriesId == element["series_id"]) return element;
@@ -90,7 +102,19 @@ export default class CatManga implements MangaPlugin {
 			}
 		};
 
-		return findManga()!;
+		let manga = findManga()!;
+
+		let mangaJSON: APIManga;
+		try {
+			const resp =
+				await Scraper.get(`${this.BASE_URL}_next/data/${this.buildId}/series/${manga.series_id}.json`,
+				RespBodyType.JSON);
+			mangaJSON = (resp.data as GenericObject)['pageProps']['series'] as APIManga;
+		} catch (e) {
+			throw Error("Failed to get index information.");
+		}
+
+		return mangaJSON;
 	}
 
 	private _getChapters(manga: APIManga): Chapter[] {
@@ -113,7 +137,7 @@ export default class CatManga implements MangaPlugin {
 		return {
 			id: manga.series_id, // can be id or url
 			title: manga.title,
-			chapters: this._getChapters(manga).reverse()
+			chapters: this._getChapters(manga)
 		}
 	}
 
@@ -123,14 +147,14 @@ export default class CatManga implements MangaPlugin {
 
 		return {
 			title: manga.title,
-			chapters: this._getChapters(manga).reverse()
+			chapters: this._getChapters(manga)
 		}
 
 	}
 
 	async getChaptersById(id: string): Promise<Chapter[]> {
 		const manga = await this._getApiManga("", id);
-		return this._getChapters(manga).reverse();
+		return this._getChapters(manga);
 	}
 
 	async selectChapter(chapter: Chapter): Promise<Reader> {
