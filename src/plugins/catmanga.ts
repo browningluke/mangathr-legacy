@@ -37,7 +37,9 @@ interface APIChapters {
 	title?: string
 }
 
-
+/**
+ * @deprecated CatManga has shutdown. This class does not, and will not, work.
+ */
 export default class CatManga implements MangaPlugin {
 
 	BASE_URL = "https://catmanga.org/";
