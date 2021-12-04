@@ -13,26 +13,28 @@ export async function run() {
 	program
 		.description("A CLI utility to download manga chapters from various online platforms.")
 		.addHelpText('after', `\nExample:\n    $ mangathr --help`)
-		.hook('preAction', async () => await db.setup() );
+		.hook('preAction', async (thisCommand, actionCommand) => {
+			await db.setup()
+
+			const commandName = actionCommand.name();
+			if (commandName == "download" || commandName == "update") { Config.CONFIG.setDestDir(commandName); }
+		} );
 
 	program
 		.option('--db-path <path>', "specify path to database",
 			(v: string) => Config.CONFIG.SQLITE_STORAGE = v)
 		.option('--dest <path>', "specify path to save files",
-			(v: string) => Config.CONFIG.DOWNLOAD_DIR = v)
+			(v: string) => Config.CONFIG.setDestDir("override", v))
+		.option('--no-comic-info', "disables adding ComicInfo to archive",
+			(_) => Config.CONFIG.INCLUDE_COMIC_INFO = false);
 
 	program
-		.option('--list-plugins', "prints all available plugin names")
-		.action(async (option) => {
-			switch (true) {
-				case option.listPlugins:
-					console.log("\x1b[1m", "Installed Plugins are:", "\x1b[0m");
-					ALL_PLUGIN_NAMES.map((name) => console.log(` - ${name}`));
-					return;
-			}
-
-			await handleDialog(db);
-		});
+		.option('--list-plugins', "prints all available plugin names", async (_) => {
+			console.log("\x1b[1m", "Installed Plugins are:", "\x1b[0m");
+			ALL_PLUGIN_NAMES.map((name) => console.log(` - ${name}`));
+			await shutdown(true);
+		})
+		.action(async _ => await handleDialog(db));
 
 	initCommands(program, db);
 	await program.parseAsync(process.argv);
