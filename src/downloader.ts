@@ -17,7 +17,7 @@ import { Buffer } from "buffer";
 function generatePath(di: DownloadItem): { filepath: string, dirname: string } {
 	const title = (di.num ? `${di.num!} - ` : "") + `${di.chapterTitle}`;
 
-	const dirname = `${Config.CONFIG.DOWNLOAD_DIR}/${di.mangaTitle}`;
+	const dirname = `${Config.CONFIG.DEST_DIR}/${di.mangaTitle}`;
 	const filepath = `${dirname}/${title}.cbz`;
 
 	return { filepath: filepath, dirname: dirname };
@@ -106,7 +106,7 @@ export async function downloadChapter(di: DownloadItem,
 
 	await getData(di.urls, delayTime);
 
-	if (di.num != null) {
+	if (Config.CONFIG.INCLUDE_COMIC_INFO) {
 		let xmlString = generateXMLString(di.num, di.chapterTitle);
 		archive.append(Buffer.from(xmlString), { name: "ComicInfo.xml" });
 		if (!silent) console.log("Added ComicInfo!");

@@ -30,7 +30,7 @@ describe('Downloader', function () {
 
     const testMangaName = "test-manga";
     const path =
-        `${Config.CONFIG.DOWNLOAD_DIR}/${testMangaName}/${testReader.num} - ${testReader.chapterTitle}.cbz`;
+        `${Config.CONFIG.DEST_DIR}/${testMangaName}/${testReader.num} - ${testReader.chapterTitle}.cbz`;
 
     // Clean up once done
     afterAll(async function () { await fsPromises.rm(path); });

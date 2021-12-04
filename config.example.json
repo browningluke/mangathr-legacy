@@ -1,0 +1,8 @@
+{
+  "paths": {
+    "SQLITE_PATH": "",
+    "DOWNLOAD_DIR": "",
+    "UPDATE_DIR": ""
+  },
+  "includeComicInfo": false
+}
