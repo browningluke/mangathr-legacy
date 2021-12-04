@@ -178,7 +178,7 @@ export default class MangaDex implements MangaPlugin {
         for (const element of chapters) {
             let groups = [];
 
-            if (element.groups.length == 0) groups.push("N/A");
+            if (element.groups.length == 0) groups.push("NA");
 
             for (const id of element.groups) {
                 if (!(id in scanlationGroups)) {
@@ -188,7 +188,7 @@ export default class MangaDex implements MangaPlugin {
 
                     let groupName = respJSON.data.attributes.name;
                     scanlationGroups[id] = groupName; // Cache name
-                    groups.push(groupName);
+                    groups.push(groupName.replace(/\//g,""));
                 } else {
                     //console.log(`Got ${scanlationGroups[obj.id]} from cache`);
                     groups.push(scanlationGroups[id]);
@@ -370,8 +370,11 @@ export default class MangaDex implements MangaPlugin {
         let imgURLs: Image[] = [];
         const digits = Math.floor(Math.log10(mdData.pages.length)) + 1;
         mdData.pages.forEach((element: string, i: number) => {
+            let extMatch = /\.(\w{3,4})($|\?\w+)/.exec(element);
+            if (!extMatch) throw Error("no extension");
+
             imgURLs.push({
-                filename: `${pad(i + 1, digits)}.${element.substr(-3)}`,
+                filename: `${pad(i + 1, digits)}.${extMatch[1]}`,
                 url: `${MDHomeBaseURL}/data/${mdData.hash}/${element}`,
             });
 
