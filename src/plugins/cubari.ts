@@ -173,8 +173,8 @@ export default class Cubari implements MangaPlugin {
 		const digits = Math.floor(Math.log10(pages.length)) + 1;
 		pages.forEach((element: any, i: number) => {
 			const url = cubariType == CubariType.MANGADEX ? element : element["src"];
-			let extensionMatch = /\.(\w{3})($|\?\w+)/.exec(url);
-			if (!extensionMatch) throw "no extension";
+			let extensionMatch = /\.(\w{3,4})($|\?\w+)/.exec(url);
+			if (!extensionMatch) throw Error("no extension");
 	
 			imgURLs.push({
 				filename: `${pad(i + 1, digits)}.${extensionMatch[1]}`,
