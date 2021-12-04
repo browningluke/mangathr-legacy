@@ -210,13 +210,20 @@ export default class SQLite implements Database {
         await this.insertOne(manga);
     }
 
-    async forEach(func: (manga: MangaUpdate) => Promise<MangaUpdate>, sleep?: number) {
+    async forEach(func: (manga: MangaUpdate) => Promise<MangaUpdate>, 
+        sleep?: number, errHandler?: (err: unknown) => void) {
         let allManga = await this.findAll();
 
         if (!allManga) throw new Error("ERROR: failed to load manga from db");
 
         for (const manga of allManga) {
-            let newManga = await func(manga as MangaUpdate);
+            let newManga;
+            try {
+                newManga = await func(manga as MangaUpdate);
+            } catch (err) {
+                errHandler?.(err);
+                continue;
+            }
 
             if (manga.chapters != newManga.chapters) {
                 await manga.update({chapters: newManga.chapters})

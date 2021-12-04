@@ -112,13 +112,20 @@ class Mongo implements Database {
 	 * @param func
 	 * @param sleep
 	 */
-	public async forEach(func: (manga: MangaUpdate) => Promise<MangaUpdate>, sleep?: number) {
+	public async forEach(func: (manga: MangaUpdate) => Promise<MangaUpdate>,
+		sleep?: number, errHandler?: (err: unknown) => void) {
 		let allManga: MangaUpdate[] | undefined = await this.findAll();
 
 		if (!allManga) throw new Error("ERROR: failed to load manga from db");
 
 		for (const manga of allManga) {
-			let newManga = await func(manga);
+			let newManga;
+			try {
+				newManga = await func(manga);
+			} catch (err) {
+				errHandler?.(err);
+				continue;
+			}
 			
 			await this._updateMangaInDatabase(newManga);
 

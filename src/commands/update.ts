@@ -22,7 +22,7 @@ async function runUpdate(db: Database) {
     console.log("Checking for new chapters.");
 
     try {
-        await db.forEach(checkForNewChapters, UPDATE_CHAPTER_DELAY_TIME);
+        await db.forEach(checkForNewChapters, UPDATE_CHAPTER_DELAY_TIME, console.error);
     } catch (err) {
         console.error(err);
     }
