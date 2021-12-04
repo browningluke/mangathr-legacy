@@ -5,7 +5,10 @@ declare module 'database' {
         findAll();
         find(obj: Partial<MangaUpdate>);
         registerManga(manga: MangaUpdate): Promise<void>;
-        forEach(func: (manga: MangaUpdate) => Promise<MangaUpdate>, sleep?: number): Promise<void>;
+        forEach(
+            func: (manga: MangaUpdate) => Promise<MangaUpdate>,
+            sleep?: number,
+            errHandler?: (err: unknown) => void): Promise<void>;
     }
 
     // Database schema
