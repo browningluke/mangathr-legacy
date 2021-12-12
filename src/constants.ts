@@ -7,6 +7,7 @@ export const SIMULTANEOUS_IMAGES = 3;
 export const IMAGE_DELAY_TIME = 100;
 export const CHAPTER_DELAY_TIME = 200;
 export const UPDATE_CHAPTER_DELAY_TIME = 2000;
+export const PAD_WIDTH = 3;
 
 // Mongodb WIP
 export const MONGO_DBNAME = "test";  // This needs to be moved to .env
