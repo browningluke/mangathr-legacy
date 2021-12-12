@@ -2,20 +2,28 @@ import { Image, ImageDownloadFn, DownloadItem } from "plugin";
 import { retryFetch } from "@helpers/retry-fetch";
 import { delay } from "@helpers/async";
 import Config from "@core/config";
+import { pad } from "@helpers/plugins"
 
 import archiver from 'archiver';
 import fs from 'fs';
 import ProgressBar from 'progress';
 
-import { SIMULTANEOUS_IMAGES, IMAGE_DELAY_TIME } from "./constants";
+import { SIMULTANEOUS_IMAGES, IMAGE_DELAY_TIME, PAD_WIDTH } from "./constants";
 import { Buffer } from "buffer";
 
 /*
 	Path Management
  */
+function cleanTitle(title: string): string {
+	// Forbidden characters in path: [/<>:"\\|?*]
+	return title.replace(/[/\\|]/g, ", ")
+				.replace(/[:<>"?*]/g, "");
+			//  .replace(//, "");
+}
 
 function generatePath(di: DownloadItem): { filepath: string, dirname: string } {
-	const title = (di.num ? `${di.num!} - ` : "") + `${di.chapterTitle}`;
+	const titleNum = pad(Math.floor(di.num), PAD_WIDTH) + (di.num - Math.floor(di.num)).toString().slice(1);	
+	const title = `${titleNum} - ` + `${cleanTitle(di.chapterTitle)}`;
 
 	const dirname = `${Config.CONFIG.DOWNLOAD_DIR}/${di.mangaTitle}`;
 	const filepath = `${dirname}/${title}.cbz`;
