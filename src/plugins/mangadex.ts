@@ -41,6 +41,17 @@ interface MDAPIGroup {
     attributes: { name: string }
 }
 
+interface MDAtHome {
+    result: "ok" | "error",
+    baseUrl: string,
+    chapter: {
+        hash: string,
+        data: string[],
+        dataSaver: string[]
+    },
+    errors?: any[]
+}
+
 /*
     Response Types
  */
@@ -70,11 +81,6 @@ interface MDAPIGroupResp extends MDAPIRespRoot { data: MDAPIGroup }
 /*
     Custom Types
  */
-
-interface MDData {
-    hash: string;
-    pages: string[];
-}
 
 interface RawChapter extends Chapter {
     groups: string[]
@@ -236,11 +242,6 @@ export default class MangaDex implements MangaPlugin {
                 chapterTitle += ` - ${attributes.title}`;
             }
 
-            let opt: MDData = {
-                hash: attributes.hash,
-                pages: attributes.data
-            }
-
             let groups: string[] = element.relationships
                 .filter((obj) => obj.type == "scanlation_group")
                 .map((obj) => obj.id);
@@ -249,7 +250,6 @@ export default class MangaDex implements MangaPlugin {
                 id: id,
                 title: chapterTitle,
                 num: chapterNum,
-                opt: opt,
                 groups: groups
             })
         }
@@ -307,11 +307,6 @@ export default class MangaDex implements MangaPlugin {
         let mangaTitle = parentInfoJSON.attributes.title.en
         mangaTitle = mangaTitle ? mangaTitle : parentInfoJSON.attributes.title.jp;
 
-        let opt: MDData = {
-            hash: attributes.hash,
-            pages: attributes.data
-        }
-
         let chapterNum = parseFloat(attributes.chapter);
         let chapterTitle = `Chapter ${chapterNum}`;
         if (attributes.title != "" && attributes.title != null) {
@@ -321,8 +316,7 @@ export default class MangaDex implements MangaPlugin {
         let chapter = {
             id: id,
             title: chapterTitle,
-            num: chapterNum,
-            opt: opt
+            num: chapterNum
         }
 
         return {
@@ -358,24 +352,24 @@ export default class MangaDex implements MangaPlugin {
     }
 
     async selectChapter(chapter: Chapter): Promise<Reader> {
-        let mdData = chapter.opt as MDData;
-
         // Fetch BaseURL
         let resp = await Scraper.get(`${this.BASE_URL}/at-home/server/${chapter.id}`, RespBodyType.JSON);
         if (resp.status_code != 200) throw new Error("Failed to get M@Home url.");
-        let respJSON = resp.data as GenericObject;
-        let MDHomeBaseURL = respJSON['baseUrl'];
+        let atHomeJSON = resp.data as MDAtHome;
+        let MDHomeBaseURL = atHomeJSON.baseUrl;
+
+        //if (MDHomeBaseURL == "https://uploads.mangadex.org") MDHomeBaseURL = "https://s2.mangadex.org"
 
         // Build URLs
         let imgURLs: Image[] = [];
-        const digits = Math.floor(Math.log10(mdData.pages.length)) + 1;
-        mdData.pages.forEach((element: string, i: number) => {
-            let extMatch = /\.(\w{3,4})($|\?\w+)/.exec(element);
+        const digits = Math.floor(Math.log10(atHomeJSON.chapter.data.length)) + 1;
+        atHomeJSON.chapter.data.forEach((filename: string, i: number) => {
+            let extMatch = /\.(\w{3,4})($|\?\w+)/.exec(filename);
             if (!extMatch) throw Error("no extension");
 
             imgURLs.push({
                 filename: `${pad(i + 1, digits)}.${extMatch[1]}`,
-                url: `${MDHomeBaseURL}/data/${mdData.hash}/${element}`,
+                url: `${MDHomeBaseURL}/data/${atHomeJSON.chapter.hash}/${filename}`,
             });
 
         });
