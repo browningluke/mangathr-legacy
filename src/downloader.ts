@@ -22,7 +22,11 @@ function cleanTitle(title: string): string {
 }
 
 function generatePath(di: DownloadItem): { filepath: string, dirname: string } {
-	const titleNum = pad(Math.floor(di.num), PAD_WIDTH) + (di.num - Math.floor(di.num)).toString().slice(1);	
+	const numSplit = (di.num + "").split(".");
+	const intNum = numSplit[0];
+	const decNum = numSplit[1];
+	
+	const titleNum = pad(intNum, PAD_WIDTH) +  (decNum ? `.${decNum}` : '');	
 	const title = `${titleNum} - ` + `${cleanTitle(di.chapterTitle)}`;
 
 	const dirname = `${Config.CONFIG.DOWNLOAD_DIR}/${di.mangaTitle}`;
