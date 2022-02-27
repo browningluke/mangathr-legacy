@@ -145,14 +145,21 @@ export default class MangaDex implements MangaPlugin {
     // Loop to get over 500 chapter limit
     private async getAllChapterData(id: string): Promise<MDAPIChapter[]> {
         const getData = async (offset: number): Promise<MDAPIMangaFeedResp> => {
+            const searchParams = new URLSearchParams();
+            searchParams.append("limit", "500");
+            searchParams.append("offset", offset.toString());
+            searchParams.append("translatedLanguage[]", "en");
+            
+            for (let x of ["safe", "suggestive", "erotica", "pornographic"]) {
+                searchParams.append("contentRating[]", x)
+            }
+            
+            
             try {
                 let resp = await Scraper.get(`${this.BASE_URL}/manga/${id}/feed`, RespBodyType.JSON,
                     {
                         escape: true,
-                        params: {
-                            limit: 500, offset: offset,
-                            "translatedLanguage[]": "en", "order[chapter]": "desc",
-                        }
+                        params: searchParams
                     });
                 return resp.data as MDAPIMangaFeedResp;
             } catch (e) {
