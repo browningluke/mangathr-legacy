@@ -21,7 +21,7 @@
 
 ### Build from source
 
-Ensure you have `npm` and `node` installed and run the following comands:
+Ensure you have `npm` and `node` installed and run the following commands:
 
     $ git clone https://github.com/browningluke/mangathr.git && cd mangathr
     $ npm install
