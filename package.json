@@ -1,6 +1,6 @@
 {
   "name": "mangathr",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "description": "A terminal client for downloading manga, with support for sites like MangaDex, Cubari and more.",
   "main": "bin/mangathr.js",
   "repository": "git://github.com/browningluke/mangathr.git",
@@ -37,6 +37,7 @@
     "@types/node-fetch": "^2.5.10",
     "@types/progress": "^2.0.3",
     "@types/request-promise": "^4.1.47",
+    "@types/uuid": "^8.3.4",
     "jest": "^27.1.0",
     "node-stream-zip": "^1.14.0",
     "ts-jest": "^27.0.5",
@@ -55,6 +56,7 @@
     "mongodb": "^4.1.1",
     "node-fetch": "^2.6.1",
     "progress": "^2.0.3",
-    "protobufjs": "~6.11.2"
+    "protobufjs": "~6.11.2",
+    "uuid": "^8.3.2"
   }
 }
