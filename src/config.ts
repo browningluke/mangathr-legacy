@@ -57,7 +57,7 @@ export default class Config {
 
         // Handle existing within a docker container
         if (isDocker()) {
-            this._downloadDir = path.parse("/mangathr");
+            this._downloadDir = path.parse("/data");
             this._sqlitePath = path.parse("/config/database.sqlite");
         }
 
