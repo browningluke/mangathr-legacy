@@ -1,4 +1,5 @@
 import { PROJECT_NAME } from "@core/constants";
+import isDocker from "@helpers/docker";
 
 import os from 'os';
 import path from 'path';
@@ -50,14 +51,25 @@ export default class Config {
         // Parse path is defined
         const parse = (env?: string) => { return env ? path.parse(env) : undefined };
 
+        // Set defaults
+        this._downloadDir = Config.DEFAULTS.DOWNLOAD_DIR;
+        this._sqlitePath = Config.DEFAULTS.SQLITE_PATH;
+
+        // Handle existing within a docker container
+        if (isDocker()) {
+            this._downloadDir = path.parse("/data");
+            this._sqlitePath = path.parse("/config/database.sqlite");
+        }
+
+        // Prioritize user config options (override defaults)
         if (Config.NODE_ENV == "test") {
             this._sqlitePath = Config.DEFAULTS.TEST_SQLITE_PATH;
             // ...
         } else {
-            this._sqlitePath = parse(process.env.SQLITE_PATH) ?? Config.DEFAULTS.SQLITE_PATH;
+            this._sqlitePath = parse(process.env.SQLITE_PATH) ?? this._sqlitePath;
             // ...
         }
-        this._downloadDir = parse(process.env.DOWNLOAD_DIR) ?? Config.DEFAULTS.DOWNLOAD_DIR;
+        this._downloadDir = parse(process.env.DOWNLOAD_DIR) ?? this._downloadDir;
     }
 
     /*

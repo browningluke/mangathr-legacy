@@ -1,0 +1,16 @@
+version: '3.4'
+services:
+  mangathr:
+    image: ghcr.io/browningluke/mangathr:latest
+    user: "1000:1000"
+    container_name: mangathr
+    command:
+      ## By default, check for new chapters of registered manga
+      - "u"
+    volumes:
+      ## Where to store downloaded content
+      - /path/to/put/downloaded/chapters:/data
+
+      ## Where to store the database & config file 
+      ## (optional for downloads, but required for updates)
+      - "/path/to/directory/with/database:/config"
