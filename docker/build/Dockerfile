@@ -22,9 +22,9 @@ COPY --from=builder /usr/src/app/bin/ bin/
 COPY package*.json ./
 RUN npm install
 
-RUN mkdir /mangathr /config
-RUN chown -R nobody:nogroup /mangathr /config
-RUN chmod 2777 /mangathr /config
-RUN umask u=rwx,g=rwx,o=rwx /mangathr /config
+RUN mkdir /data /config
+RUN chown -R nobody:nogroup /data /config
+RUN chmod 2777 /data /config
+RUN umask u=rwx,g=rwx,o=rwx /data /config
 
 ENTRYPOINT [ "npm", "start", "--" ]
