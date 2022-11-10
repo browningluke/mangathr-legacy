@@ -3,7 +3,7 @@
 [![npm version](https://badge.fury.io/js/mangathr.svg)](https://badge.fury.io/js/mangathr)
 [![Known Vulnerabilities](https://snyk.io/test/github/browningluke/mangathr/badge.svg)](https://snyk.io/test/github/browningluke/mangathr)
 
-⚠️ Deprecation Notice: This project has been superseded by [mangathrV2](https://github.com/browningluke/mangathrV2) (written in Go; faster w/ more features). Nothing new will be developed for this. However, an effort will be made to keep everything working. ⚠️
+⚠️ Deprecation Notice: This project has been superseded by [mangathrV2](https://github.com/browningluke/mangathrV2) (written in Go; faster w/ more features). Nothing new will be developed for this. However, an effort will be made to keep everything working.
 
 **mangathr** is a command-line program to download manga chapters from numerous online platforms (See [Plugins](#plugins)). It supports monitoring ongoing manga to check for new chapters. It bundles each chapters with an accompanying ComicInfo.xml for correct numbering in manga readers such as [Komga](https://github.com/gotson/komga).
 
