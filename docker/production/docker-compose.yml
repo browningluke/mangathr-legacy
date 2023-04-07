@@ -1,9 +1,9 @@
 version: '3.4'
 services:
   mangathr:
-    image: ghcr.io/browningluke/mangathr:latest
+    image: ghcr.io/browningluke/mangathr-legacy:latest
     user: "1000:1000"
-    container_name: mangathr
+    container_name: mangathr-legacy
     command:
       ## By default, check for new chapters of registered manga
       - "u"
