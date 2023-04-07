@@ -1,13 +1,13 @@
-# 📦 Mangathr
+# 📦 Mangathr Legacy
 
-[![npm version](https://badge.fury.io/js/mangathr.svg)](https://badge.fury.io/js/mangathr)
-[![Known Vulnerabilities](https://snyk.io/test/github/browningluke/mangathr/badge.svg)](https://snyk.io/test/github/browningluke/mangathr)
+[![npm version](https://badge.fury.io/js/mangathr-legacy.svg)](https://badge.fury.io/js/mangathr-legacy)
+[![Known Vulnerabilities](https://snyk.io/test/github/browningluke/mangathr-legacy/badge.svg)](https://snyk.io/test/github/browningluke/mangathr)
 
-⚠️ Deprecation Notice: This project has been superseded by [mangathrV2](https://github.com/browningluke/mangathrV2) (written in Go; faster w/ more features). Nothing new will be developed for this. However, an effort will be made to keep everything working.
+⚠️ Deprecation Notice: This project has been superseded by [mangathr](https://github.com/browningluke/mangathr) (written in Go; faster w/ more features). Nothing new will be developed for this. However, an effort will be made to keep everything working.
 
-**mangathr** is a command-line program to download manga chapters from numerous online platforms (See [Plugins](#plugins)). It supports monitoring ongoing manga to check for new chapters. It bundles each chapters with an accompanying ComicInfo.xml for correct numbering in manga readers such as [Komga](https://github.com/gotson/komga).
+**mangathr-legacy** is a command-line program to download manga chapters from numerous online platforms (See [Plugins](#plugins)). It supports monitoring ongoing manga to check for new chapters. It bundles each chapters with an accompanying ComicInfo.xml for correct numbering in manga readers such as [Komga](https://github.com/gotson/komga).
 
-<p align="center"><img src="https://raw.githubusercontent.com/browningluke/mangathr/master/.github/readme_images/demo.gif" /></p>
+<p align="center"><img src="https://raw.githubusercontent.com/browningluke/mangathr-legacy/master/.github/readme_images/demo.gif" /></p>
 
 &nbsp;
 
@@ -19,13 +19,13 @@
 - Support for bulk chapter renaming with Regex.
 
 ## Installation
-    npm install -g mangathr
+    npm install -g mangathr-legacy
 
 ### Build from source
 
 Ensure you have `npm` and `node` installed and run the following commands:
 
-    $ git clone https://github.com/browningluke/mangathr.git && cd mangathr
+    $ git clone https://github.com/browningluke/mangathr-legacy.git && cd mangathr-legacy
     $ npm install
     $ npm run build
     $ npm link
@@ -33,7 +33,7 @@ Ensure you have `npm` and `node` installed and run the following commands:
 
 ## Usage
 
-    $ mangathr [SUBCOMMAND] [OPTIONS]
+    $ mangathr-legacy [SUBCOMMAND] [OPTIONS]
 
 When downloading chapters (download or update), chapters will be downloaded into subfolder in current working directory.
 

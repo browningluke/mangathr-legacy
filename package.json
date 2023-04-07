@@ -1,9 +1,9 @@
 {
-  "name": "mangathr",
+  "name": "mangathr-legacy",
   "version": "0.3.4",
   "description": "A terminal client for downloading manga, with support for sites like MangaDex, Cubari and more.",
   "main": "bin/mangathr.js",
-  "repository": "git://github.com/browningluke/mangathr.git",
+  "repository": "git://github.com/browningluke/mangathr-legacy.git",
   "prepublish": "tsc",
   "files": [
     "dist"
@@ -15,7 +15,7 @@
     "watch": "tsc --watch --project './tsconfig.json'"
   },
   "bin": {
-    "mangathr": "bin/mangathr.js"
+    "mangathr-legacy": "bin/mangathr.js"
   },
   "author": "Luke Browning - lrbrowning6@gmail.com",
   "license": "ISC",
