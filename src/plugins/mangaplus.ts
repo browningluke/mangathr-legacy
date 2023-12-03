@@ -4,7 +4,7 @@ import { fuzzySearch, pad } from "@helpers/plugins";
 import { retryFetch } from "@helpers/retry-fetch";
 
 import fs from "fs";
-import {v4 as uuidv4} from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 import { Root } from "protobufjs/light";
 
 interface MPData {
@@ -121,13 +121,13 @@ export default class MangaPlus implements MangaPlugin {
                 } catch {
                     chapterTitle = currentChapter.subTitle;
                 }
-                chapters.push({ id: currentChapter.chapterId.toString(), title: chapterTitle, num: chapterNum});
+                chapters.push({ id: currentChapter.chapterId.toString(), title: chapterTitle, num: chapterNum });
             }
 
             return chapters;
         }
         let chapters = [...formatChapters(titleDetailView.firstChapterList),
-            ...formatChapters(titleDetailView.lastChapterList)];
+        ...formatChapters(titleDetailView.lastChapterList)];
 
         return {
             title: mangaTitle,
@@ -156,10 +156,10 @@ export default class MangaPlus implements MangaPlugin {
         let readerJSON: GenericObject;
         try {
             const resp = await Scraper.get(`${this.BASE_URL}/manga_viewer`, RespBodyType.BUFFER,
-                    {
-                        params: { chapter_id: chapter.id, split: "yes", img_quality: "high" },
-                        opts: { headers: { ...this.BASE_HEADERS, Referer: `${this.BASE_URL}/viewer/${chapter.id}` } }
-                    });
+                {
+                    params: { chapter_id: chapter.id, split: "yes", img_quality: "super_high" },
+                    opts: { headers: { ...this.BASE_HEADERS, Referer: `${this.BASE_URL}/viewer/${chapter.id}` } }
+                });
             readerJSON = MangaPlus.decode(resp.data as Buffer);
         } catch (e) {
             throw new Error("Failed to get manga viewer.");
@@ -174,9 +174,9 @@ export default class MangaPlus implements MangaPlugin {
             if (!extMatch || !extMatch[1]) throw new Error("Failed getting image extension.");
 
             imgURLs.push({
-               filename: `${pad(i + 1, digits)}.${extMatch[1]}`,
-               url: p.page.imageUrl,
-               opt: { encryptionKey: p.page.encryptionKey }
+                filename: `${pad(i + 1, digits)}.${extMatch[1]}`,
+                url: p.page.imageUrl,
+                opt: { encryptionKey: p.page.encryptionKey }
             });
         })
 
@@ -189,8 +189,8 @@ export default class MangaPlus implements MangaPlugin {
 
     public imageDownload() {
         return async (image: Image, filepath: string, refererUrl?: string) => {
-            const {url, opt} = image;
-            const {Origin: _, ...headers} = this.BASE_HEADERS;
+            const { url, opt } = image;
+            const { Origin: _, ...headers } = this.BASE_HEADERS;
 
             const key = hexStringToByte((opt as MPData).encryptionKey);
             const a = key.length;
@@ -198,7 +198,7 @@ export default class MangaPlus implements MangaPlugin {
             let res, data;
             try {
                 res = await retryFetch(url, {
-                    headers: {...headers, Referer: url}
+                    headers: { ...headers, Referer: url }
                 }, 10, 1000)
                 const buffer = await res.buffer();
 
@@ -219,8 +219,8 @@ export default class MangaPlus implements MangaPlugin {
 
 function hexStringToByte(str: string) {
     let a = [];
-    for (let i = 0, len = str.length; i < len; i+=2) {
-        a.push(parseInt(str.substr(i,2),16));
+    for (let i = 0, len = str.length; i < len; i += 2) {
+        a.push(parseInt(str.substr(i, 2), 16));
     }
     return new Uint8Array(a);
 }
@@ -233,7 +233,7 @@ function getProto() {
     return Root.fromJSON({
         "nested": {
             "Response": {
-                "oneofs": { "data": { "oneof": [ "success", "error" ] } },
+                "oneofs": { "data": { "oneof": ["success", "error"] } },
                 "fields": {
                     "success": { "type": "SuccessResult", "id": 1 },
                     "error": { "type": "ErrorResult", "id": 2 }
@@ -265,7 +265,7 @@ function getProto() {
                 "fields": {
                     "isFeaturedUpdated": { "type": "bool", "id": 1 },
                     "titleRankingView": { "type": "TitleRankingView", "id": 6 },
-                    "titleDetailView": { "type": "TitleDetailView",  "id": 8 },
+                    "titleDetailView": { "type": "TitleDetailView", "id": 8 },
                     "mangaViewer": { "type": "MangaViewer", "id": 10 },
                     "allTitlesViewV2": { "type": "AllTitlesViewV2", "id": 25 },
                     "webHomeViewV3": { "type": "WebHomeViewV3", "id": 31 }
@@ -284,7 +284,7 @@ function getProto() {
             "AllTitlesGroup": {
                 "fields": {
                     "theTitle": { "type": "string", "id": 1 },
-                    "titles": { "rule": "repeated", "type": "Title",  "id": 2 }
+                    "titles": { "rule": "repeated", "type": "Title", "id": 2 }
                 }
             },
             "WebHomeViewV3": {
@@ -316,7 +316,7 @@ function getProto() {
             },
             "MangaViewer": {
                 "fields": {
-                    "pages": { "rule": "repeated", "type": "Page", "id": 1}
+                    "pages": { "rule": "repeated", "type": "Page", "id": 1 }
                 }
             },
             "Title": {
