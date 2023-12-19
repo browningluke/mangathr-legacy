@@ -171,7 +171,7 @@ export default class SQLite implements Database {
                     this.deleteItem({ plugin: getObj.plugin, title: getObj.title, id: getObj.id });
                 },
                 update: async (obj) => {
-                    this.updateItem({ plugin: getObj.plugin, title: getObj.title, id: getObj.id}, obj);
+                    this.updateItem({ plugin: getObj.plugin, title: getObj.title, id: getObj.id }, obj);
                 }
             });
         }
@@ -190,13 +190,13 @@ export default class SQLite implements Database {
             id: obj.id
         };
 
-        let getObj: MUSchema = this.generateSelectStatement(newObj).get(newObj);
+        let getObj: MUSchema = (this.generateSelectStatement(newObj).get(newObj) as MUSchema);
 
         return getObj ? this.generateFoundObjArray([getObj]) : [];
     }
 
     async findAll() {
-        let getObjArray: MUSchema[] = this.generateSelectStatement().all();
+        let getObjArray: MUSchema[] = (this.generateSelectStatement().all() as MUSchema[]);
         return this.generateFoundObjArray(getObjArray);
     }
 
@@ -210,7 +210,7 @@ export default class SQLite implements Database {
         await this.insertOne(manga);
     }
 
-    async forEach(func: (manga: MangaUpdate) => Promise<MangaUpdate>, 
+    async forEach(func: (manga: MangaUpdate) => Promise<MangaUpdate>,
         sleep?: number, errHandler?: (err: unknown) => void) {
         let allManga = await this.findAll();
 
@@ -226,7 +226,7 @@ export default class SQLite implements Database {
             }
 
             if (manga.chapters != newManga.chapters) {
-                await manga.update({chapters: newManga.chapters})
+                await manga.update({ chapters: newManga.chapters })
             }
 
             await delay(sleep ?? 0);

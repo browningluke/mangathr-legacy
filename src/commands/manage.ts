@@ -14,7 +14,7 @@ export function initManageCommand(program: Commander, db: Database) {
 
         if (id && plugin) {
             const parsedPlugin = getPluginFromMap(plugin);
-            if (!parsedPlugin){
+            if (!parsedPlugin) {
                 console.log("Please enter a valid plugin.");
                 await shutdown(true);
             }
@@ -55,7 +55,7 @@ export async function handleManageDialog(db: Database) {
 }
 
 async function deleteFromDatabase(db: Database, target?: { plugin: MangaPlugin, id: string },
-                                  skipConfirmation = false) {
+    skipConfirmation = false) {
     const getUserResp = async () => {
         // Get plugin from user
         let pluginResp: MangaPlugin;
@@ -118,7 +118,7 @@ async function deleteFromDatabase(db: Database, target?: { plugin: MangaPlugin, 
     try {
         await item.destroy();
     } catch (e) {
-        console.log(`An error occurred. Failed to delete item. (${e.message})`);
+        console.log(`An error occurred. Failed to delete item. (${(e as Error).message})`);
         await shutdown(true);
     }
 
@@ -126,12 +126,12 @@ async function deleteFromDatabase(db: Database, target?: { plugin: MangaPlugin, 
 }
 
 async function printListFromDatabase(db: Database, showChapters = false,
-                                     filter?: (mu: MangaUpdate) => boolean): Promise<MangaUpdate[]> {
+    filter?: (mu: MangaUpdate) => boolean): Promise<MangaUpdate[]> {
     let colWidths = showChapters ? [25, 20, 15, 33] : [35, 43, 15];
 
     let table = new Table({
         head: showChapters ? ['title', 'id', 'plugin', 'chapters'] : ['title', 'id', 'plugin'],
-        chars: {'mid': '', 'left-mid': '', 'mid-mid': '', 'right-mid': ''},
+        chars: { 'mid': '', 'left-mid': '', 'mid-mid': '', 'right-mid': '' },
         colWidths: colWidths, wordWrap: true
     });
 
