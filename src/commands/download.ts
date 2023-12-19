@@ -119,7 +119,7 @@ class Download {
         try {
             await download(this.chapters[chapterIndex], this.manga.title, this.plugin);
         } catch (e) {
-            console.log(e.message);
+            console.log((e as Error).message);
         }
     }
 

@@ -13,7 +13,7 @@ async function searchQuery(plugin: MangaPlugin, register: boolean, argQuery?: st
     try {
         manga = register ? await plugin.getUpdateUrl(query) : await plugin.getManga(query);
     } catch (e) {
-        console.log(`An error occurred, shutting down. (${e.message})`);
+        console.log(`An error occurred, shutting down. (${(e as Error).message})`);
         await shutdown(true);
     }
 
@@ -23,7 +23,7 @@ async function searchQuery(plugin: MangaPlugin, register: boolean, argQuery?: st
 async function download(chapter: Chapter, mangaTitle: string, plugin: MangaPlugin, quiet?: boolean) {
     if (!quiet) console.log(`Downloading: ${chapter.title}`);
 
-    if (isDownloaded({mangaTitle: mangaTitle, chapterTitle: chapter.title, num: chapter.num, urls: []})) {
+    if (isDownloaded({ mangaTitle: mangaTitle, chapterTitle: chapter.title, num: chapter.num, urls: [] })) {
         console.log(`Skipping ${chapter.title}, already downloaded.`);
         return;
     }
@@ -40,7 +40,7 @@ async function download(chapter: Chapter, mangaTitle: string, plugin: MangaPlugi
     try {
         await downloadChapter(downloadItem, quiet);
     } catch (e) {
-        console.log(`Error. Download failed. (${e.message})`);
+        console.log(`Error. Download failed. (${(e as Error).message})`);
     }
 }
 

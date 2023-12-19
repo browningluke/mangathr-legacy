@@ -38,7 +38,7 @@ export async function handleRegisterDialog(db: Database) {
 }
 
 async function getManga(plugin: MangaPlugin, query?: string): Promise<IDManga> {
-	let	mangaUnion = await searchQuery(plugin, true, query);
+	let mangaUnion = await searchQuery(plugin, true, query);
 	return mangaUnion as IDManga;
 }
 
@@ -67,14 +67,14 @@ async function registerManga(db: Database, manga: IDManga, plugin: MangaPlugin, 
 }
 
 async function addToDatabase(db: Database, mangaUpdate: MangaUpdate) {
-    try {
-        await db.registerManga(mangaUpdate);
-        console.log("Manga registered!");
-    } catch (err) {
-        if (err.name == MangaAlreadyRegisteredError.name) {
-            console.log("Manga has already been registered.")
-        } else {
-            console.error(err);
-        }
-    }
+	try {
+		await db.registerManga(mangaUpdate);
+		console.log("Manga registered!");
+	} catch (err) {
+		if ((err as Error).name == MangaAlreadyRegisteredError.name) {
+			console.log("Manga has already been registered.")
+		} else {
+			console.error(err);
+		}
+	}
 }
