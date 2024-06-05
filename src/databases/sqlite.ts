@@ -190,13 +190,13 @@ export default class SQLite implements Database {
             id: obj.id
         };
 
-        let getObj: MUSchema = this.generateSelectStatement(newObj).get(newObj);
+        let getObj: MUSchema = (this.generateSelectStatement(newObj).get(newObj) as MUSchema);
 
         return getObj ? this.generateFoundObjArray([getObj]) : [];
     }
 
     async findAll() {
-        let getObjArray: MUSchema[] = this.generateSelectStatement().all();
+        let getObjArray: MUSchema[] = (this.generateSelectStatement().all() as MUSchema[]);
         return this.generateFoundObjArray(getObjArray);
     }
 

@@ -13,7 +13,11 @@ async function searchQuery(plugin: MangaPlugin, register: boolean, argQuery?: st
     try {
         manga = register ? await plugin.getUpdateUrl(query) : await plugin.getManga(query);
     } catch (e) {
-        console.log(`An error occurred, shutting down. (${e.message})`);
+        if (typeof e === "string") {
+            console.log(`An error occurred, shutting down. (${e})`);
+        } else if (e instanceof Error) {
+            console.log(`An error occurred, shutting down. (${e.message})`);
+        }
         await shutdown(true);
     }
 
@@ -40,7 +44,11 @@ async function download(chapter: Chapter, mangaTitle: string, plugin: MangaPlugi
     try {
         await downloadChapter(downloadItem, quiet);
     } catch (e) {
-        console.log(`Error. Download failed. (${e.message})`);
+        if (typeof e === "string") {
+            console.log(`Error. Download failed. (${e})`);
+        } else if (e instanceof Error) {
+            console.log(`Error. Download failed. (${e.message})`);
+        }
     }
 }
 
