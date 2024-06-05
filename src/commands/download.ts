@@ -119,7 +119,11 @@ class Download {
         try {
             await download(this.chapters[chapterIndex], this.manga.title, this.plugin);
         } catch (e) {
-            console.log((e as Error).message);
+            if (typeof e === "string") {
+                console.log(e);
+            } else if (e instanceof Error) {
+                console.log(e.message);
+            }
         }
     }
 

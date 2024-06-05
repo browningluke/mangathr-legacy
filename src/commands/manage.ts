@@ -118,7 +118,11 @@ async function deleteFromDatabase(db: Database, target?: { plugin: MangaPlugin, 
     try {
         await item.destroy();
     } catch (e) {
-        console.log(`An error occurred. Failed to delete item. (${(e as Error).message})`);
+        if (typeof e === "string") {
+            console.log(`An error occurred. Failed to delete item. (${e})`);
+        } else if (e instanceof Error) {
+            console.log(`An error occurred. Failed to delete item. (${e.message})`);
+        }
         await shutdown(true);
     }
 

@@ -71,10 +71,14 @@ async function addToDatabase(db: Database, mangaUpdate: MangaUpdate) {
 		await db.registerManga(mangaUpdate);
 		console.log("Manga registered!");
 	} catch (err) {
-		if ((err as Error).name == MangaAlreadyRegisteredError.name) {
-			console.log("Manga has already been registered.")
-		} else {
+		if (typeof err === "string") {
 			console.error(err);
+		} else if (err instanceof Error) {
+			if (err.name == MangaAlreadyRegisteredError.name) {
+				console.log("Manga has already been registered.")
+			} else {
+				console.error(err);
+			}
 		}
 	}
 }
