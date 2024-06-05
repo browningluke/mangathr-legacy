@@ -38,7 +38,7 @@ export async function handleRegisterDialog(db: Database) {
 }
 
 async function getManga(plugin: MangaPlugin, query?: string): Promise<IDManga> {
-	let	mangaUnion = await searchQuery(plugin, true, query);
+	let mangaUnion = await searchQuery(plugin, true, query);
 	return mangaUnion as IDManga;
 }
 

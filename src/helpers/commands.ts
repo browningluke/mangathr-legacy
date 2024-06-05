@@ -27,7 +27,7 @@ async function searchQuery(plugin: MangaPlugin, register: boolean, argQuery?: st
 async function download(chapter: Chapter, mangaTitle: string, plugin: MangaPlugin, quiet?: boolean) {
     if (!quiet) console.log(`Downloading: ${chapter.title}`);
 
-    if (isDownloaded({mangaTitle: mangaTitle, chapterTitle: chapter.title, num: chapter.num, urls: []})) {
+    if (isDownloaded({ mangaTitle: mangaTitle, chapterTitle: chapter.title, num: chapter.num, urls: [] })) {
         console.log(`Skipping ${chapter.title}, already downloaded.`);
         return;
     }

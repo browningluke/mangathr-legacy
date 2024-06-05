@@ -1,4 +1,4 @@
-FROM node:18-alpine AS builder
+FROM node:iron-alpine AS builder
 
 WORKDIR /usr/src/app
 COPY package*.json ./
@@ -12,7 +12,7 @@ COPY bin bin
 
 RUN npm run build
 
-FROM node:18-alpine
+FROM node:iron-alpine
 ENV NODE_ENV=production
 WORKDIR /usr/src/app
 
