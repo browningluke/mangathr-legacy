@@ -67,14 +67,18 @@ async function registerManga(db: Database, manga: IDManga, plugin: MangaPlugin, 
 }
 
 async function addToDatabase(db: Database, mangaUpdate: MangaUpdate) {
-    try {
-        await db.registerManga(mangaUpdate);
-        console.log("Manga registered!");
-    } catch (err) {
-        if (err.name == MangaAlreadyRegisteredError.name) {
-            console.log("Manga has already been registered.")
-        } else {
-            console.error(err);
-        }
-    }
+	try {
+		await db.registerManga(mangaUpdate);
+		console.log("Manga registered!");
+	} catch (err) {
+		if (typeof err === "string") {
+			console.error(err);
+		} else if (err instanceof Error) {
+			if (err.name == MangaAlreadyRegisteredError.name) {
+				console.log("Manga has already been registered.")
+			} else {
+				console.error(err);
+			}
+		}
+	}
 }
