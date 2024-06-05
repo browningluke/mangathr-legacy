@@ -66,7 +66,7 @@ export default class MangaPlus implements MangaPlugin {
     private async getMangaInfo(titleId: string | number) {
         let mangaJSON: GenericObject;
         try {
-            const resp = await Scraper.get(`${this.BASE_URL}/title_detail`, RespBodyType.BUFFER,
+            const resp = await Scraper.get(`${this.BASE_URL}/title_detailV3`, RespBodyType.BUFFER,
                 {
                     params: { title_id: titleId },
                     opts: { headers: { ...this.BASE_HEADERS, Referer: `${this.BASE_URL}/titles/${titleId}` } }
@@ -126,8 +126,19 @@ export default class MangaPlus implements MangaPlugin {
 
             return chapters;
         }
-        let chapters = [...formatChapters(titleDetailView.firstChapterList),
-        ...formatChapters(titleDetailView.lastChapterList)];
+
+        // Since protobuf returns chapters in either first or last chapter attr,
+        // loop through either block and accumulate whichever chapter array.
+        let chapters = [];
+        for (const x of titleDetailView.chapters) {
+            if (x.firstChapterList.length > 0) {
+                chapters.push(...formatChapters(x.firstChapterList));
+            }
+
+            if (x.lastChapterList.length > 0) {
+                chapters.push(...formatChapters(x.lastChapterList));
+            }
+        }
 
         return {
             title: mangaTitle,
@@ -236,44 +247,19 @@ function getProto() {
                 "oneofs": { "data": { "oneof": ["success", "error"] } },
                 "fields": {
                     "success": { "type": "SuccessResult", "id": 1 },
-                    "error": { "type": "ErrorResult", "id": 2 }
-                }
-            },
-            "ErrorResult": {
-                "fields": {
-                    "action": { "type": "Action", "id": 1 },
-                    "englishPopup": { "type": "Popup", "id": 2 },
-                    "spanishPopup": { "type": "Popup", "id": 3 }
-                }
-            },
-            "Action": {
-                "values": { "DEFAULT": 0, "UNAUTHORIZED": 1, "MAINTAINENCE": 2, "GEOIP_BLOCKING": 3 }
-            },
-            "Popup": {
-                "fields": {
-                    "subject": { "type": "string", "id": 1 },
-                    "body": { "type": "string", "id": 2 }
                 }
             },
             "SuccessResult": {
                 "oneofs": {
                     "data": {
-                        "oneof": ["titleRankingView", "titleDetailView", "mangaViewer",
-                            "allTitlesViewV2", "webHomeViewV3"]
+                        "oneof": ["titleDetailView", "mangaViewer", "allTitlesViewV2"]
                     }
                 },
                 "fields": {
                     "isFeaturedUpdated": { "type": "bool", "id": 1 },
-                    "titleRankingView": { "type": "TitleRankingView", "id": 6 },
                     "titleDetailView": { "type": "TitleDetailView", "id": 8 },
                     "mangaViewer": { "type": "MangaViewer", "id": 10 },
                     "allTitlesViewV2": { "type": "AllTitlesViewV2", "id": 25 },
-                    "webHomeViewV3": { "type": "WebHomeViewV3", "id": 31 }
-                }
-            },
-            "TitleRankingView": {
-                "fields": {
-                    "titles": { "rule": "repeated", "type": "Title", "id": 1 }
                 }
             },
             "AllTitlesViewV2": {
@@ -287,31 +273,16 @@ function getProto() {
                     "titles": { "rule": "repeated", "type": "Title", "id": 2 }
                 }
             },
-            "WebHomeViewV3": {
-                "fields": {
-                    "groups": { "rule": "repeated", "type": "UpdatedTitleV2Group", "id": 2 }
-                }
-            },
             "TitleDetailView": {
                 "fields": {
                     "title": { "type": "Title", "id": 1 },
-                    "titleImageUrl": { "type": "string", "id": 2 },
-                    "overview": { "type": "string", "id": 3 },
-                    "backgroundImageUrl": { "type": "string", "id": 4 },
-                    "nextTimeStamp": { "type": "uint32", "id": 5 },
-                    "updateTiming": { "type": "UpdateTiming", "id": 6 },
-                    "viewingPeriodDescription": { "type": "string", "id": 7 },
-                    "nonAppearanceInfo": { "type": "string", "id": 8, "options": { "default": "" } },
-                    "firstChapterList": { "rule": "repeated", "type": "Chapter", "id": 9 },
-                    "lastChapterList": { "rule": "repeated", "type": "Chapter", "id": 10 },
-                    "isSimulReleased": { "type": "bool", "id": 14 },
-                    "chaptersDescending": { "type": "bool", "id": 17 }
+                    "chapters": { "rule": "repeated", "type": "ChapterBlock", "id": 28}
                 }
             },
-            "UpdateTiming": {
-                "values": {
-                    "NOT_REGULARLY": 0, "MONDAY": 1, "TUESDAY": 2, "WEDNESDAY": 3,
-                    "THURSDAY": 4, "FRIDAY": 5, "SATURDAY": 6, "SUNDAY": 7, "DAY": 8
+            "ChapterBlock": {
+                "fields": {
+                    "firstChapterList": { "rule": "repeated", "type": "Chapter", "id": 2 },
+                    "lastChapterList": { "rule": "repeated", "type": "Chapter", "id": 4 },
                 }
             },
             "MangaViewer": {
@@ -323,10 +294,6 @@ function getProto() {
                 "fields": {
                     "titleId": { "type": "uint32", "id": 1 },
                     "name": { "type": "string", "id": 2 },
-                    "author": { "type": "string", "id": 3 },
-                    "portraitImageUrl": { "type": "string", "id": 4 },
-                    "landscapeImageUrl": { "type": "string", "id": 5 },
-                    "viewCount": { "type": "uint32", "id": 6, "options": { "default": 0 } },
                     "language": { "type": "Language", "id": 7, "options": { "default": 0 } }
                 }
             },
@@ -336,34 +303,12 @@ function getProto() {
                     "PORTUGUESE_BR": 4, "RUSSIAN": 5, "THAI": 6
                 }
             },
-            "UpdatedTitleV2Group": {
-                "fields": {
-                    "groupName": { "type": "string", "id": 1 },
-                    "titleGroups": { "rule": "repeated", "type": "OriginalTitleGroup", "id": 2 }
-                }
-            },
-            "OriginalTitleGroup": {
-                "fields": {
-                    "theTitle": { "type": "string", "id": 1 },
-                    "titles": { "rule": "repeated", "type": "UpdatedTitle", "id": 3 }
-                }
-            },
-            "UpdatedTitle": {
-                "fields": {
-                    "title": { "type": "Title", "id": 1 },
-                    "chapterId": { "type": "uint32", "id": 2 },
-                    "chapterName": { "type": "string", "id": 3 },
-                    "chapterSubtitle": { "type": "string", "id": 4 }
-                }
-            },
             "Chapter": {
                 "fields": {
                     "titleId": { "type": "uint32", "id": 1 },
                     "chapterId": { "type": "uint32", "id": 2 },
                     "name": { "type": "string", "id": 3 },
                     "subTitle": { "type": "string", "id": 4 },
-                    "startTimeStamp": { "type": "uint32", "id": 6 },
-                    "endTimeStamp": { "type": "uint32", "id": 7 }
                 }
             },
             "Page": {
