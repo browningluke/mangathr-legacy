@@ -18,6 +18,9 @@ export async function run() {
 	program
 		.option('--db-path <path>', "specify path to database",
 			(v: string) => Config.CONFIG.SQLITE_STORAGE = v)
+		.option('--psql-connection-string <path>', "specify connection string for psql database" +
+			" (only used when driver is 'postgres')",
+			(v: string) => Config.CONFIG.PSQL_CONNECTION_STRING = v)
 		.option('--dest <path>', "specify path to save files",
 			(v: string) => Config.CONFIG.DOWNLOAD_DIR = v)
 
