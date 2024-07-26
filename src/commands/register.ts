@@ -17,6 +17,7 @@ export function initRegisterCommand(program: Commander, db: Database) {
 		}
 
 		await registerManga(db, manga, parsedPlugin, options.y);
+		await db.close();
 	}
 
 	program
@@ -35,6 +36,7 @@ export async function handleRegisterDialog(db: Database) {
 	console.log((manga as IDManga).id);
 
 	await registerManga(db, manga, plugin);
+	await db.close();
 }
 
 async function getManga(plugin: MangaPlugin, query?: string): Promise<IDManga> {

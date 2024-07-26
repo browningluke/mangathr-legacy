@@ -46,10 +46,10 @@ export const shutdown = async (q = false) => {
 	process.exit();
 }
 
-process.on('SIGINT', () => {
-	shutdown().then();
+process.on('SIGINT', async () => {
+	await shutdown();
 });
 
-process.on('exit', () => {
-	db.close().then();
+process.on('exit', async () => {
+	await db.close();
 })

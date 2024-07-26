@@ -21,9 +21,13 @@ export function initManageCommand(program: Commander, db: Database) {
             target = { id, plugin: parsedPlugin! };
         }
         await deleteFromDatabase(db, target, options.y);
+        await db.close();
     }
 
-    const listFunction = async (options: any) => { await printListFromDatabase(db, options.showChapters); }
+    const listFunction = async (options: any) => {
+        await printListFromDatabase(db, options.showChapters);
+        await db.close();
+    }
 
     let manageCommand = program
         .command(`manage`)
@@ -46,9 +50,13 @@ export function initManageCommand(program: Commander, db: Database) {
 export async function handleManageDialog(db: Database) {
     switch (await getUserSelection(["List", "Delete"])) {
         case "List":
-            return printListFromDatabase(db);
+            let listRes = await printListFromDatabase(db);
+            await db.close();
+            return listRes;
         case "Delete":
-            return deleteFromDatabase(db);
+            let delRes = await deleteFromDatabase(db)
+            await db.close();
+            return delRes;
         default:
             throw new Error("Switch case outside available list.");
     }
