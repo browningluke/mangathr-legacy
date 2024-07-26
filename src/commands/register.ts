@@ -6,8 +6,10 @@ import { getUserConfirmation } from "@helpers/cli";
 
 import { Command as Commander } from "commander";
 
-export function initRegisterCommand(program: Commander, db: Database) {
+export function initRegisterCommand(program: Commander) {
 	const registerFunction = async (plugin: string, query: string, options: any) => {
+		let db = program.opts().database as Database;
+
 		let parsedPlugin = await parsePlugin(plugin);
 		let manga = await getManga(parsedPlugin, query);
 

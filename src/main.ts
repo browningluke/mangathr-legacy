@@ -1,19 +1,26 @@
-import SQLite from "@databases/sqlite";
 import Config from "@core/config";
 
 import { handleDialog, initCommands } from "./commands";
 
 import { Command as Commander } from 'commander';
 import { ALL_PLUGIN_NAMES } from "./plugins";
+import { Database } from "database";
+import SQLite from "@databases/sqlite";
+import Postgres from "@databases/postgres";
+
 const program = new Commander();
 
-let db = new SQLite();
+let db: Database;
 
 export async function run() {
 	program
 		.description("A CLI utility to download manga chapters from various online platforms.")
 		.addHelpText('after', `\nExample:\n    $ mangathr --help`)
-		.hook('preAction', async () => await db.setup() );
+		.hook('preAction', async (thisCommand, _) => {
+			// Pass option up to file-wide variable
+			db = (thisCommand.opts().database as Database);
+			await db.setup();
+		} );
 
 	program
 		.option('--db-path <path>', "specify path to database",
@@ -23,6 +30,20 @@ export async function run() {
 			(v: string) => Config.CONFIG.PSQL_CONNECTION_STRING = v)
 		.option('--dest <path>', "specify path to save files",
 			(v: string) => Config.CONFIG.DOWNLOAD_DIR = v)
+		.option<Database>('--database <driver>', "database driver to use (default sqlite)",
+			(v: string) => {
+				switch (v.toLowerCase().trim()) {
+					case "postgres":
+					case "psql":
+						return new Postgres();
+
+					default:
+						console.warn(`\x1b[33mUnknown driver '${v}', defaulting to sqlite...\x1b[0m`);
+					case "sqlite":
+					case "sqlite3":
+						return new SQLite();
+				}
+			}, new SQLite());
 
 	program
 		.option('--list-plugins', "prints all available plugin names")
@@ -37,7 +58,7 @@ export async function run() {
 			await handleDialog(db);
 		});
 
-	initCommands(program, db);
+	initCommands(program);
 	await program.parseAsync(process.argv);
 }
 

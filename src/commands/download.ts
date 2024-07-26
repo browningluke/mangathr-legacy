@@ -7,7 +7,7 @@ import { CHAPTER_DELAY_TIME } from "@core/constants";
 
 import { Command as Commander } from 'commander';
 
-export function initDownloadCommand(program: Commander, db: Database) {
+export function initDownloadCommand(program: Commander) {
     const downloadFunction = async (plugin: string, query: string, options: any) => {
         let parsedPlugin = await parsePlugin(plugin);
         let download = await createDownload(parsedPlugin, query);

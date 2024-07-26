@@ -8,8 +8,10 @@ import { MangaPlugin } from "plugin";
 import { Command as Commander } from "commander";
 import Table from "cli-table3";
 
-export function initManageCommand(program: Commander, db: Database) {
+export function initManageCommand(program: Commander) {
     const deleteFunction = async (plugin: string | undefined, id: string | undefined, options: any) => {
+        let db = program.opts().database as Database;
+
         let target: { plugin: MangaPlugin, id: string } | undefined;
 
         if (id && plugin) {
@@ -25,6 +27,7 @@ export function initManageCommand(program: Commander, db: Database) {
     }
 
     const listFunction = async (options: any) => {
+        let db = program.opts().database as Database;
         await printListFromDatabase(db, options.showChapters);
         await db.close();
     }

@@ -6,8 +6,9 @@ import { UPDATE_CHAPTER_DELAY_TIME } from "@core/constants";
 
 import { Command as Commander } from "commander";
 
-export function initUpdateCommand(program: Commander, db: Database) {
+export function initUpdateCommand(program: Commander) {
    let updateFunction = async () => {
+       let db = program.opts().database as Database;
        await runUpdate(db);
        await db.close();
    }
