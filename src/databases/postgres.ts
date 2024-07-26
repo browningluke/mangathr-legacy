@@ -1,10 +1,8 @@
 import { Database, MangaUpdate } from "database";
 import { delay } from "@helpers/async";
 import { MangaAlreadyRegisteredError } from "@core/exceptions";
+import pg from 'pg';
 import Config from "@core/config";
-import SQLite3, { SqliteError } from 'better-sqlite3';
-import path from "path";
-import fs from "fs";
 
 type MUSchema = {
     plugin: string,
@@ -28,51 +26,49 @@ type PartialMUNoChapters = {
     id?: string
 }
 
-export default class SQLite implements Database {
+export default class Postgres implements Database {
 
     /*
         Setup methods
     */
 
-    private db: SQLite3.Database | undefined; // undefined, since db is only opened when setup() is called
+    private db: pg.Client | undefined; // undefined, since db is only opened when setup() is called
     private static readonly TABLE_NAME = "manga";
     private static readonly SCHEMA = "(plugin TEXT, title TEXT, id TEXT, chapters TEXT)";
 
     async setup() {
-        const filePath = Config.CONFIG.SQLITE_STORAGE;
+        if (Config.CONFIG.PSQL_CONNECTION_STRING == null) {
+            console.log("\x1b[31mMust specify a connection string when using postgres driver.\x1b[0m");
+            process.exit(1);
+        }
 
-        // Handle full path not existing
-        fs.mkdirSync(path.dirname(filePath), { recursive: true })
+        this.db = new pg.Client({
+            connectionString: Config.CONFIG.PSQL_CONNECTION_STRING
+        })
 
-        this.db = new SQLite3(filePath); //, { verbose: console.log });
+        await this.db.connect();
 
         // Create table
-        let stmt;
+        let res;
         try {
-            stmt = this.db
-                .prepare(`CREATE TABLE ${SQLite.TABLE_NAME} ${SQLite.SCHEMA};`);
-        } catch (e) {
-            if (e instanceof SqliteError) {
-                // ignore as db already exists.
+            res = await this.db
+                .query(`CREATE TABLE ${Postgres.TABLE_NAME} ${Postgres.SCHEMA};`);
+        } catch (e: any) {
+            if ('code' in e && e.code == "42P07") {
+                // Ignore, since table already exists
             } else {
                 throw e;
             }
         }
-
-        if (stmt) {
-            let info = stmt.run();
-            //console.log(`create table result ${info.changes}`);
-        }
     }
 
-    async close() { this.db!.close(); }
+    async close() { await this.db!.end(); }
 
     async reset() {
         if (!this.db) throw new Error("Setup() must be called before db can be used.");
 
-        const stmt = this.db.prepare(`DROP TABLE ${SQLite.TABLE_NAME};`);
-        const info = stmt.run();
-        console.log(`drop table result ${info.changes}`);
+        const res = await this.db.query(`DROP TABLE ${Postgres.TABLE_NAME};`);
+        // console.log(`drop table result ${res.rows}`);
         await this.setup();
     }
 
@@ -83,79 +79,79 @@ export default class SQLite implements Database {
     private async insertOne(obj: MangaUpdate) {
         if (!this.db) throw new Error("Setup() must be called before db can be used.");
 
-        const insert = this.db
-            .prepare(`INSERT INTO ${SQLite.TABLE_NAME} (plugin, title, id, chapters)` +
-                ` VALUES (@plugin, @title, @id, @chapters)`);
-
-        let cleanedObj = {
-            plugin: obj.plugin,
-            title: obj.title,
-            id: obj.id,
-            chapters: JSON.stringify(obj.chapters)
-        }
-
-        const info = insert.run(cleanedObj);
-        //console.log(`Insert one: ${info.changes}`);
+        const res = await this.db
+            .query(`INSERT INTO ${Postgres.TABLE_NAME} (plugin, title, id, chapters) VALUES ($1, $2, $3, $4) RETURNING *`,
+                [
+                    obj.plugin,
+                    obj.title,
+                    obj.id,
+                    JSON.stringify(obj.chapters)
+                ]);
+        // console.log(`Rows added: ${res.rowCount}`);
     }
 
     private static generateStringFromMangaUpdate(obj: Partial<MangaUpdate>) {
-        let x = [];
+        let queries = [];
+        let params = [];
+        let counter = 1;
 
-        // god i hate this, but typescript hates what i want to do, so screw it
-        if (obj.plugin) x.push(`plugin = @plugin`);
-        if (obj.title) x.push(`title = @title`);
-        if (obj.id) x.push(`id = @id`);
-        if (obj.chapters) x.push(`chapters = @chapters`);
+        for (const [value, key] of [[obj.plugin, "plugin"], [obj.title, "title"],
+            [obj.id, "id"], [obj.chapters, "chapters"]]) {
+            if (value != undefined) {
+                queries.push(`${key} = $${counter}`);
+                params.push(JSON.stringify(value));
+                counter++;
+            }
+        }
 
-        return x.join(" AND ");
+        return [queries.join(" AND "), params] as const;
     }
 
-    private generateSelectStatement(obj?: PartialMUNoChapters) {
+    private generateSelectStatement(obj?: PartialMUNoChapters): Promise<pg.QueryResult<MUSchema>> {
         if (!this.db) throw new Error("Setup() must be called before db can be used.");
 
-        let queryString = " WHERE ";
+        let [queries, paramList] = (obj ? Postgres.generateStringFromMangaUpdate(obj!) : ["", []])
+        let queryString = obj ? " WHERE " + queries : "";
 
-        if (obj) queryString += SQLite.generateStringFromMangaUpdate(obj);
-
-        return this.db
-            .prepare(`SELECT * FROM ${SQLite.TABLE_NAME}` + (obj ? `${queryString};` : ';'));
+        return this.db.query(
+            `SELECT * FROM ${Postgres.TABLE_NAME}` + queryString,
+            paramList
+        );
     }
 
     private async deleteItem(obj: { plugin: string, title: string, id: string }) {
         if (!this.db) throw new Error("Setup() must be called before db can be used.");
 
-        const stmt = this.db
-            .prepare(`DELETE FROM ${SQLite.TABLE_NAME}` +
-                ` WHERE plugin = @plugin AND title = @title` +
-                ` AND id = @id;`);
-        const info = stmt.run(obj);
-        //console.log(`Deleted ${obj.id}: ${info.changes}`);
+        const res = await this.db
+            .query(`DELETE FROM ${Postgres.TABLE_NAME}` +
+                ` WHERE plugin = $1 AND title = $2` +
+                ` AND id = $3`,
+                [
+                    obj.plugin, obj.title, obj.id
+                ]);
+        // console.log(`Deleted ${obj.id}: ${res.rowCount}`);
     }
 
     private async updateItem(obj: { plugin: string, title: string, id: string }, newObj: Partial<MangaUpdate>) {
         if (!this.db) throw new Error("Setup() must be called before db can be used.");
 
-        let andString = SQLite.generateStringFromMangaUpdate(newObj);
+        let [andString, paramsList] = Postgres.generateStringFromMangaUpdate(newObj);
+        let paramCounter = paramsList.length + 1;
 
         // If new object is empty, don't update
         if (andString.length == 0) return
 
-        const stmt = this.db
-            .prepare(`UPDATE ${SQLite.TABLE_NAME} SET ${andString}` +
-                ` WHERE plugin = @oldPlugin AND title = @oldTitle AND id = @oldId;`);
-
-        const stmtObj = {
-            plugin: newObj.plugin,
-            title: newObj.title,
-            id: newObj.id,
-            chapters: JSON.stringify(newObj.chapters),
-            oldPlugin: obj.plugin,
-            oldTitle: obj.title,
-            oldId: obj.id
-        }
-
-        const info = stmt.run(stmtObj);
-        //console.log(`Update: ${info.changes}`);
+        const res = await this.db
+            .query(`UPDATE ${Postgres.TABLE_NAME} SET ${andString}` +
+                ` WHERE plugin = $${paramCounter} AND title = $${paramCounter + 1} AND id = $${paramCounter + 2}`,
+                [
+                    ...paramsList,
+                    ...[
+                    obj.plugin, obj.title, obj.id
+                    ]
+                ]
+            );
+        // console.log(`Update: ${res.rowCount}`);
     }
 
     private generateFoundObjArray(getObjArray: MUSchema[]): DBItem[] {
@@ -190,13 +186,21 @@ export default class SQLite implements Database {
             id: obj.id
         };
 
-        let getObj: MUSchema = (this.generateSelectStatement(newObj).get(newObj) as MUSchema);
+        let getObj  = await this.generateSelectStatement(newObj);
+        if (getObj.rowCount == null || getObj.rowCount == 0) {
+            return [];
+        }
+        if (getObj.rowCount > 1) {
+            throw new Error("Found more than 1 row!");
+        }
 
-        return getObj ? this.generateFoundObjArray([getObj]) : [];
+        const returnedObj = Object.assign(newObj, getObj.rows[0])
+
+        return this.generateFoundObjArray([returnedObj]);
     }
 
     async findAll() {
-        let getObjArray: MUSchema[] = (this.generateSelectStatement().all() as MUSchema[]);
+        let getObjArray: MUSchema[] = (await this.generateSelectStatement()).rows;
         return this.generateFoundObjArray(getObjArray);
     }
 

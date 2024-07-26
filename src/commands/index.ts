@@ -15,9 +15,9 @@ const Commands = {
     'manage': handleManageDialog,
     'update': handleUpdateDialog
 }
-export function initCommands(program: Commander, db: Database) {
+export function initCommands(program: Commander) {
     for (const a of initFunctions) {
-        a(program, db)
+        a(program)
     }
 }
 

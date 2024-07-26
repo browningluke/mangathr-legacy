@@ -27,7 +27,8 @@ export default class Config {
     private static DEFAULTS = {
         SQLITE_PATH: path.parse(`${os.homedir()}/.${PROJECT_NAME}/database.sqlite`),
         TEST_SQLITE_PATH: path.parse(`${os.homedir()}/.${PROJECT_NAME}/database.test.sqlite`),
-        DOWNLOAD_DIR: path.parse(`${process.cwd()}/${PROJECT_NAME}`)
+        DOWNLOAD_DIR: path.parse(`${process.cwd()}/${PROJECT_NAME}`),
+        PSQL_CONNECTION_STRING: null
     }
 
     /*
@@ -44,6 +45,12 @@ export default class Config {
     private _downloadDir: path.ParsedPath;
 
     /*
+        Variables
+     */
+
+    private _psqlConnectionString: string | null;
+
+    /*
         Functions
      */
 
@@ -54,6 +61,7 @@ export default class Config {
         // Set defaults
         this._downloadDir = Config.DEFAULTS.DOWNLOAD_DIR;
         this._sqlitePath = Config.DEFAULTS.SQLITE_PATH;
+        this._psqlConnectionString = Config.DEFAULTS.PSQL_CONNECTION_STRING;
 
         // Handle existing within a docker container
         if (isDocker()) {
@@ -70,6 +78,7 @@ export default class Config {
             // ...
         }
         this._downloadDir = parse(process.env.DOWNLOAD_DIR) ?? this._downloadDir;
+        this._psqlConnectionString = process.env.PSQL_CONNECTION_STRING ?? this._psqlConnectionString;
     }
 
     /*
@@ -84,6 +93,10 @@ export default class Config {
         return path.format(this._downloadDir);
     }
 
+    public get PSQL_CONNECTION_STRING() {
+        return this._psqlConnectionString;
+    }
+
     /*
         Setters
      */
@@ -96,5 +109,9 @@ export default class Config {
     public set DOWNLOAD_DIR(val) {
         // Path validation is handled by the downloader module.
         this._downloadDir = path.parse(val);
+    }
+
+    public set PSQL_CONNECTION_STRING(val) {
+        this._psqlConnectionString = val;
     }
 }

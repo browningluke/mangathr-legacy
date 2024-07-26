@@ -6,8 +6,12 @@ import { UPDATE_CHAPTER_DELAY_TIME } from "@core/constants";
 
 import { Command as Commander } from "commander";
 
-export function initUpdateCommand(program: Commander, db: Database) {
-   let updateFunction = async () => { await runUpdate(db); }
+export function initUpdateCommand(program: Commander) {
+   let updateFunction = async () => {
+       let db = program.opts().database as Database;
+       await runUpdate(db);
+       await db.close();
+   }
 
     program
        .command(`update`)
@@ -16,7 +20,10 @@ export function initUpdateCommand(program: Commander, db: Database) {
        .action(updateFunction);
 }
 
-export async function handleUpdateDialog(db: Database) { await runUpdate(db); }
+export async function handleUpdateDialog(db: Database) {
+    await runUpdate(db);
+    await db.close();
+}
 
 async function runUpdate(db: Database) {
     console.log("Checking for new chapters.");

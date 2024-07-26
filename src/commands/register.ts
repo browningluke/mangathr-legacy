@@ -6,8 +6,10 @@ import { getUserConfirmation } from "@helpers/cli";
 
 import { Command as Commander } from "commander";
 
-export function initRegisterCommand(program: Commander, db: Database) {
+export function initRegisterCommand(program: Commander) {
 	const registerFunction = async (plugin: string, query: string, options: any) => {
+		let db = program.opts().database as Database;
+
 		let parsedPlugin = await parsePlugin(plugin);
 		let manga = await getManga(parsedPlugin, query);
 
@@ -17,6 +19,7 @@ export function initRegisterCommand(program: Commander, db: Database) {
 		}
 
 		await registerManga(db, manga, parsedPlugin, options.y);
+		await db.close();
 	}
 
 	program
@@ -35,6 +38,7 @@ export async function handleRegisterDialog(db: Database) {
 	console.log((manga as IDManga).id);
 
 	await registerManga(db, manga, plugin);
+	await db.close();
 }
 
 async function getManga(plugin: MangaPlugin, query?: string): Promise<IDManga> {
