@@ -121,7 +121,7 @@ export default class SQLite implements Database {
             .prepare(`SELECT * FROM ${SQLite.TABLE_NAME}` + (obj ? `${queryString};` : ';'));
     }
 
-    private deleteItem(obj: { plugin: string, title: string, id: string }) {
+    private async deleteItem(obj: { plugin: string, title: string, id: string }) {
         if (!this.db) throw new Error("Setup() must be called before db can be used.");
 
         const stmt = this.db
@@ -132,7 +132,7 @@ export default class SQLite implements Database {
         //console.log(`Deleted ${obj.id}: ${info.changes}`);
     }
 
-    private updateItem(obj: { plugin: string, title: string, id: string }, newObj: Partial<MangaUpdate>) {
+    private async updateItem(obj: { plugin: string, title: string, id: string }, newObj: Partial<MangaUpdate>) {
         if (!this.db) throw new Error("Setup() must be called before db can be used.");
 
         let andString = SQLite.generateStringFromMangaUpdate(newObj);
@@ -168,10 +168,10 @@ export default class SQLite implements Database {
                 id: getObj.id,
                 chapters: JSON.parse(getObj.chapters),
                 destroy: async () => {
-                    this.deleteItem({ plugin: getObj.plugin, title: getObj.title, id: getObj.id });
+                    await this.deleteItem({ plugin: getObj.plugin, title: getObj.title, id: getObj.id });
                 },
                 update: async (obj) => {
-                    this.updateItem({ plugin: getObj.plugin, title: getObj.title, id: getObj.id }, obj);
+                    await this.updateItem({ plugin: getObj.plugin, title: getObj.title, id: getObj.id }, obj);
                 }
             });
         }
